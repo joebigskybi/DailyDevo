@@ -3,11 +3,11 @@
 // new-shell/old-content skew), and offline users get the full cached app.
 // Bump CACHE_VERSION on every release and keep the content.js ?v query in
 // index.html in sync with it.
-var CACHE_VERSION = "dailydevo-v6";
+var CACHE_VERSION = "dailydevo-v7";
 var ASSETS = [
   "./",
   "./index.html",
-  "./content.js?v=6",
+  "./content.js?v=7",
   "./manifest.webmanifest",
   "./icons/icon-192.png",
   "./icons/icon-512.png",
