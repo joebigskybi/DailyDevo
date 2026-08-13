@@ -5,14 +5,13 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>DailyDevo</title>
 <meta name="description" content="A moment with God instead of a scroll.">
-<meta name="theme-color" content="#faf6ef" media="(prefers-color-scheme: light)">
-<meta name="theme-color" content="#1c1917" media="(prefers-color-scheme: dark)">
+<meta name="theme-color" content="#1c1917">
 <link rel="manifest" href="./manifest.webmanifest">
 <link rel="apple-touch-icon" href="./icons/apple-touch-icon.png">
 <link rel="icon" href="./icons/icon-192.png">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="DailyDevo">
 <style>
   :root {
@@ -26,6 +25,7 @@
     --line: #e7e0d4;
     --good: #4d7c50;
     --shadow: 0 2px 12px rgba(60, 45, 30, 0.08);
+    --navh: calc(64px + env(safe-area-inset-bottom));
   }
   @media (prefers-color-scheme: dark) {
     :root {
@@ -48,40 +48,216 @@
     color: var(--ink);
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
     min-height: 100%;
-    padding: env(safe-area-inset-top) env(safe-area-inset-right) 0 env(safe-area-inset-left);
     font-size: 16px;
     line-height: 1.55;
   }
-  .wrap { max-width: 540px; margin: 0 auto; padding: 18px 18px 96px; }
 
-  header { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 16px; }
-  header h1 { font-family: Georgia, "Times New Roman", serif; font-size: 1.45rem; font-weight: 600; letter-spacing: 0.01em; }
-  header h1 span { color: var(--accent); }
-  .streak { font-size: 0.85rem; color: var(--ink-soft); font-weight: 600; }
+  /* ============ FULL-SCREEN FEED (Today) ============ */
+  #feed {
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: var(--navh);
+    overflow-y: scroll;
+    scroll-snap-type: y mandatory;
+    overscroll-behavior: contain;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    background: #1c1917;
+    z-index: 1;
+  }
+  #feed::-webkit-scrollbar { display: none; }
+
+  .slide {
+    height: 100%;
+    scroll-snap-align: start;
+    scroll-snap-stop: always;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding: calc(64px + env(safe-area-inset-top)) 30px 84px;
+    position: relative;
+    overflow: hidden;
+  }
+  .slide-inner { max-width: 480px; margin: 0 auto; width: 100%; position: relative; }
+
+  .slide .kicker {
+    font-size: 0.7rem; font-weight: 700; letter-spacing: 0.22em;
+    text-transform: uppercase; opacity: 0.75; margin-bottom: 20px;
+    color: var(--ink-c);
+  }
+  .slide .kicker .dot { opacity: 0.5; margin: 0 6px; }
+
+  .slide { color: var(--ink-c); }
+
+  .s-text {
+    font-family: Georgia, "Times New Roman", serif;
+    font-size: 1.75rem; line-height: 1.45; font-weight: 400;
+    text-wrap: balance;
+  }
+  .s-text.long { font-size: 1.35rem; line-height: 1.5; }
+  .s-text.xlong { font-size: 1.15rem; line-height: 1.55; }
+  .s-ref {
+    margin-top: 26px; font-size: 1rem; letter-spacing: 0.04em;
+    opacity: 0.85; font-style: italic;
+  }
+  .s-ref::before { content: "— "; }
+
+  .q-text {
+    font-family: Georgia, serif; font-style: italic;
+    font-size: 1.6rem; line-height: 1.5; text-wrap: balance;
+  }
+  .q-text.long { font-size: 1.25rem; }
+
+  .d-title { font-family: Georgia, serif; font-size: 1.7rem; line-height: 1.25; margin-bottom: 8px; }
+  .d-ref { font-size: 0.85rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; opacity: 0.75; margin-bottom: 18px; }
+  .d-body {
+    font-size: 1.02rem; line-height: 1.62; opacity: 0.95;
+    max-height: 52vh; overflow-y: auto; scrollbar-width: none;
+    padding-right: 4px;
+    -webkit-mask-image: linear-gradient(to bottom, #000 88%, transparent);
+            mask-image: linear-gradient(to bottom, #000 88%, transparent);
+  }
+  .d-body::-webkit-scrollbar { display: none; }
+
+  .flourish { width: 46px; height: 2px; background: currentColor; opacity: 0.45; margin-bottom: 22px; border-radius: 2px; }
+
+  /* ---- slide background designs ---- */
+  .bg0 { /* sunrise */
+    --ink-c: #fdf6ec;
+    background:
+      radial-gradient(ellipse 120% 55% at 50% 108%, rgba(255, 205, 130, 0.55), transparent 60%),
+      radial-gradient(circle at 50% 95%, rgba(255, 240, 200, 0.35), transparent 35%),
+      linear-gradient(180deg, #2b1c4d 0%, #5c2f57 45%, #a45a54 78%, #d98e5f 100%);
+  }
+  .bg1 { /* night sky */
+    --ink-c: #eef2f7;
+    background-color: #10182b;
+    background-image:
+      radial-gradient(1.5px 1.5px at 22% 28%, rgba(255,255,255,0.9), transparent 100%),
+      radial-gradient(1px 1px at 68% 14%, rgba(255,255,255,0.7), transparent 100%),
+      radial-gradient(1.5px 1.5px at 84% 42%, rgba(255,255,255,0.8), transparent 100%),
+      radial-gradient(1px 1px at 38% 58%, rgba(255,255,255,0.6), transparent 100%),
+      radial-gradient(1.5px 1.5px at 12% 74%, rgba(255,255,255,0.75), transparent 100%),
+      radial-gradient(1px 1px at 56% 86%, rgba(255,255,255,0.6), transparent 100%),
+      radial-gradient(1px 1px at 90% 70%, rgba(255,255,255,0.65), transparent 100%),
+      radial-gradient(ellipse 90% 45% at 50% -10%, rgba(90, 120, 200, 0.35), transparent 70%),
+      linear-gradient(180deg, #0e1526 0%, #17203a 60%, #1d2a49 100%);
+  }
+  .bg2 { /* sage meadow */
+    --ink-c: #f5f8f0;
+    background:
+      repeating-linear-gradient(115deg, rgba(255,255,255,0.045) 0 2px, transparent 2px 26px),
+      radial-gradient(ellipse 100% 60% at 85% 110%, rgba(215, 235, 190, 0.28), transparent 60%),
+      linear-gradient(165deg, #3d5240 0%, #52704f 55%, #6d8a60 100%);
+  }
+  .bg3 { /* terracotta arcs */
+    --ink-c: #fdf3ea;
+    background:
+      repeating-radial-gradient(circle at 50% 130%, transparent 0 54px, rgba(255, 235, 215, 0.07) 54px 56px),
+      linear-gradient(180deg, #7c3f2e 0%, #a05a3c 55%, #c07850 100%);
+  }
+  .bg4 { /* deep sea */
+    --ink-c: #ecf6f6;
+    background:
+      repeating-radial-gradient(ellipse 140% 45% at 50% 118%, rgba(190, 240, 235, 0.06) 0 30px, transparent 30px 62px),
+      radial-gradient(ellipse 120% 50% at 50% 115%, rgba(120, 220, 210, 0.22), transparent 65%),
+      linear-gradient(180deg, #0d3b40 0%, #14555a 60%, #1d6f6f 100%);
+  }
+  .bg5 { /* parchment (light) */
+    --ink-c: #443626;
+    background-color: #f6efe1;
+    background-image:
+      radial-gradient(rgba(150, 120, 80, 0.14) 1px, transparent 1.5px),
+      radial-gradient(ellipse 120% 70% at 50% -20%, rgba(255, 252, 244, 0.9), transparent 70%),
+      linear-gradient(180deg, #f7f1e4 0%, #efe4cd 100%);
+    background-size: 26px 26px, auto, auto;
+  }
+  .bg6 { /* plum dusk */
+    --ink-c: #f7eef6;
+    background:
+      repeating-linear-gradient(45deg, rgba(255, 255, 255, 0.03) 0 1px, transparent 1px 18px),
+      repeating-linear-gradient(-45deg, rgba(255, 255, 255, 0.03) 0 1px, transparent 1px 18px),
+      radial-gradient(ellipse 90% 50% at 15% 110%, rgba(240, 170, 190, 0.25), transparent 60%),
+      linear-gradient(170deg, #3a2140 0%, #59305c 60%, #7c4468 100%);
+  }
+  .bg7 { /* forest light */
+    --ink-c: #f1f6ec;
+    background:
+      radial-gradient(ellipse 70% 45% at 75% 8%, rgba(250, 240, 180, 0.28), transparent 65%),
+      radial-gradient(ellipse 100% 55% at 20% 115%, rgba(20, 45, 30, 0.55), transparent 70%),
+      linear-gradient(180deg, #1e3527 0%, #2d4a34 55%, #3e5c40 100%);
+  }
+  .bg-followup { /* commitment gold */
+    --ink-c: #fdf8ec;
+    background:
+      radial-gradient(ellipse 110% 55% at 50% -15%, rgba(255, 225, 150, 0.3), transparent 65%),
+      repeating-linear-gradient(90deg, rgba(255, 240, 200, 0.04) 0 2px, transparent 2px 30px),
+      linear-gradient(180deg, #4a3413 0%, #6d4e1c 55%, #8a6526 100%);
+  }
+
+  /* follow-up slide */
+  .fu-label { font-size: 0.72rem; font-weight: 700; letter-spacing: 0.24em; text-transform: uppercase; opacity: 0.8; margin-bottom: 20px; }
+  .fu-q { font-family: Georgia, serif; font-size: 1.5rem; line-height: 1.45; margin-bottom: 8px; }
+  .fu-commit { font-family: Georgia, serif; font-size: 1.5rem; font-style: italic; margin-bottom: 26px; }
+  .btn-row { display: flex; flex-direction: column; gap: 10px; }
+  .btn-row button {
+    border: none; border-radius: 14px; padding: 15px; font-size: 1rem;
+    font-weight: 700; cursor: pointer; font-family: inherit; width: 100%;
+  }
+  .btn-row .yes { background: rgba(255, 255, 255, 0.92); color: #5c4415; }
+  .btn-row .later { background: rgba(255, 255, 255, 0.16); color: var(--ink-c); }
+  .btn-row .no { background: transparent; color: var(--ink-c); opacity: 0.75; border: 1px solid rgba(255,255,255,0.35); }
+  .btn-row button:active { opacity: 0.8; }
+
+  /* swipe hint */
+  #swipe-hint {
+    position: fixed; bottom: calc(var(--navh) + 14px); left: 0; right: 0;
+    text-align: center; z-index: 3; pointer-events: none;
+    color: rgba(255, 255, 255, 0.85);
+    font-size: 0.72rem; font-weight: 700; letter-spacing: 0.18em; text-transform: uppercase;
+    text-shadow: 0 1px 8px rgba(0,0,0,0.4);
+    transition: opacity 0.5s ease;
+  }
+  #swipe-hint .chev {
+    display: block; font-size: 1.3rem; line-height: 1;
+    animation: bob 1.6s ease-in-out infinite;
+  }
+  #swipe-hint.hide { opacity: 0; }
+  @keyframes bob {
+    0%, 100% { transform: translateY(3px); opacity: 0.6; }
+    50% { transform: translateY(-4px); opacity: 1; }
+  }
+
+  /* floating header over feed */
+  #feed-header {
+    position: fixed; top: 0; left: 0; right: 0; z-index: 3;
+    display: flex; justify-content: space-between; align-items: baseline;
+    padding: calc(14px + env(safe-area-inset-top)) 20px 26px;
+    pointer-events: none;
+    background: linear-gradient(180deg, rgba(0,0,0,0.32), transparent);
+  }
+  #feed-header h1 {
+    font-family: Georgia, serif; font-size: 1.2rem; font-weight: 600;
+    color: #fff; text-shadow: 0 1px 6px rgba(0,0,0,0.35);
+  }
+  #feed-header h1 span { opacity: 0.75; }
+  #feed-header .streak { font-size: 0.82rem; font-weight: 700; color: #fff; text-shadow: 0 1px 6px rgba(0,0,0,0.35); }
+
+  /* ============ PANELS (Journal / History) ============ */
+  .wrap { max-width: 540px; margin: 0 auto; padding: calc(18px + env(safe-area-inset-top)) 18px calc(var(--navh) + 20px); }
+  .wrap header { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 16px; }
+  .wrap header h1 { font-family: Georgia, serif; font-size: 1.45rem; font-weight: 600; }
+  .wrap header h1 span { color: var(--accent); }
 
   .card {
-    background: var(--card);
-    border: 1px solid var(--line);
-    border-radius: 18px;
-    padding: 22px 20px;
-    box-shadow: var(--shadow);
-    margin-bottom: 16px;
+    background: var(--card); border: 1px solid var(--line); border-radius: 18px;
+    padding: 22px 20px; box-shadow: var(--shadow); margin-bottom: 16px;
   }
-  .kicker {
+  .panel-kicker {
     display: flex; align-items: center; justify-content: space-between;
     font-size: 0.72rem; font-weight: 700; letter-spacing: 0.12em;
     text-transform: uppercase; color: var(--accent); margin-bottom: 14px;
   }
-  .kicker .theme { color: var(--ink-soft); font-weight: 600; letter-spacing: 0.08em; }
-
-  .scripture-text, .quote-text {
-    font-family: Georgia, "Times New Roman", serif;
-    font-size: 1.28rem; line-height: 1.6; margin-bottom: 14px;
-  }
-  .ref, .author { font-size: 0.95rem; color: var(--ink-soft); font-style: italic; }
-  .devo-title { font-family: Georgia, serif; font-size: 1.35rem; margin-bottom: 4px; }
-  .devo-ref { font-size: 0.85rem; color: var(--accent); font-weight: 600; margin-bottom: 14px; }
-  .devo-body { font-size: 1.02rem; line-height: 1.65; white-space: pre-wrap; }
+  .panel-kicker .theme { color: var(--ink-soft); font-weight: 600; }
 
   .btn {
     display: block; width: 100%; border: none; border-radius: 14px;
@@ -89,20 +265,7 @@
     background: var(--accent); color: #fff; font-family: inherit;
   }
   .btn:active { opacity: 0.85; }
-  .btn.ghost { background: var(--accent-soft); color: var(--accent); }
-  .btn.small { width: auto; padding: 10px 16px; font-size: 0.9rem; display: inline-block; }
 
-  /* Commitment follow-up */
-  .followup { border-left: 4px solid var(--gold); }
-  .followup h3 { font-size: 0.78rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--gold); margin-bottom: 10px; }
-  .followup .commit-text { font-family: Georgia, serif; font-size: 1.1rem; margin-bottom: 16px; }
-  .followup .row { display: flex; gap: 8px; flex-wrap: wrap; }
-  .followup .row .btn { flex: 1; min-width: 100px; padding: 12px 8px; font-size: 0.9rem; }
-  .followup .btn.yes { background: var(--good); color: #fff; }
-  .followup .btn.later { background: var(--accent-soft); color: var(--accent); }
-  .followup .btn.no { background: transparent; color: var(--ink-soft); border: 1px solid var(--line); }
-
-  /* Journal form */
   label.field { display: block; font-size: 0.82rem; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--ink-soft); margin: 18px 0 8px; }
   textarea, input[type=text] {
     width: 100%; background: var(--bg); color: var(--ink);
@@ -127,7 +290,6 @@
   }
   .chip.sel { background: var(--accent); border-color: var(--accent); color: #fff; }
 
-  /* History */
   .entry { padding: 16px 0; border-bottom: 1px solid var(--line); }
   .entry:last-child { border-bottom: none; }
   .entry .date { font-size: 0.8rem; font-weight: 700; color: var(--ink-soft); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 6px; }
@@ -142,9 +304,9 @@
   .stat span { font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.06em; color: var(--ink-soft); }
   .empty { text-align: center; color: var(--ink-soft); padding: 40px 10px; font-style: italic; }
 
-  /* Tabs */
+  /* ============ NAV / TOAST ============ */
   nav {
-    position: fixed; bottom: 0; left: 0; right: 0;
+    position: fixed; bottom: 0; left: 0; right: 0; z-index: 10;
     background: var(--card); border-top: 1px solid var(--line);
     display: flex; padding-bottom: env(safe-area-inset-bottom);
   }
@@ -160,34 +322,35 @@
   @keyframes fade { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
 
   .toast {
-    position: fixed; left: 50%; bottom: 90px; transform: translateX(-50%) translateY(20px);
+    position: fixed; left: 50%; bottom: calc(var(--navh) + 26px); transform: translateX(-50%) translateY(20px);
     background: var(--ink); color: var(--bg); padding: 12px 22px; border-radius: 999px;
     font-size: 0.92rem; font-weight: 600; opacity: 0; pointer-events: none;
     transition: all 0.3s ease; white-space: nowrap; z-index: 50;
   }
   .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
-  .center { text-align: center; }
   .mt { margin-top: 14px; }
 </style>
 </head>
 <body>
-<div class="wrap">
+
+<!-- TODAY: full-screen swipe feed -->
+<div id="feed-header">
+  <h1>Daily<span>Devo</span></h1>
+  <div class="streak" id="streak"></div>
+</div>
+<div id="feed"></div>
+<div id="swipe-hint"><span class="chev">︿</span>Swipe up for another</div>
+
+<!-- JOURNAL + HISTORY panels -->
+<div class="wrap" id="panels" style="display:none">
   <header>
     <h1>Daily<span>Devo</span></h1>
-    <div class="streak" id="streak"></div>
+    <div class="streak" id="streak2" style="font-size:0.85rem;color:var(--ink-soft);font-weight:600"></div>
   </header>
 
-  <!-- TODAY -->
-  <section class="view sel" id="view-today">
-    <div id="followup-slot"></div>
-    <div id="content-slot"></div>
-    <button class="btn ghost" id="another">Show me another</button>
-  </section>
-
-  <!-- JOURNAL -->
   <section class="view" id="view-journal">
     <div class="card">
-      <div class="kicker"><span>Prayer Journal</span><span class="theme" id="today-date"></span></div>
+      <div class="panel-kicker"><span>Prayer Journal</span><span class="theme" id="today-date"></span></div>
 
       <label class="field" for="prayer">My prayer today</label>
       <textarea id="prayer" placeholder="Lord, today I bring You..."></textarea>
@@ -211,7 +374,6 @@
     </div>
   </section>
 
-  <!-- HISTORY -->
   <section class="view" id="view-history">
     <div class="stats">
       <div class="stat"><b id="st-entries">0</b><span>Entries</span></div>
@@ -247,8 +409,9 @@
 
   var MOOD_EMOJI = { 1: "😞", 2: "😕", 3: "😐", 4: "🙂", 5: "😄" };
   var FEELINGS = ["Grateful", "Hopeful", "Peaceful", "Joyful", "Tired", "Anxious", "Stressed", "Sad", "Angry", "Lonely"];
+  var BG_COUNT = 8;
 
-  // ---------- content deck (shuffle-through, no repeats until deck empties) ----------
+  // ---------- content deck ----------
   var allItems = {};
   var allIds = [];
   ["scriptures", "devotionals", "quotes"].forEach(function (kind) {
@@ -275,7 +438,6 @@
     if (!deck || deck.sig !== contentSig() || !deck.ids || deck.idx >= deck.ids.length) {
       var last = deck && deck.ids ? deck.ids[deck.ids.length - 1] : null;
       var ids = shuffled(allIds);
-      // don't let the new deck open with the card we just saw
       if (ids.length > 1 && ids[0] === last) { ids.push(ids.shift()); }
       deck = { sig: contentSig(), ids: ids, idx: 0 };
     }
@@ -291,28 +453,84 @@
     });
   }
 
-  function renderCard(item) {
-    var slot = document.getElementById("content-slot");
+  // deterministic background per card so each one keeps its own look
+  function bgClass(id) {
+    var h = 0;
+    for (var i = 0; i < id.length; i++) { h = (h * 31 + id.charCodeAt(i)) >>> 0; }
+    return "bg" + (h % BG_COUNT);
+  }
+
+  function sizeClass(text, base) {
+    if (text.length > 340) return base + " xlong";
+    if (text.length > 190) return base + " long";
+    return base;
+  }
+
+  // ---------- feed slides ----------
+  var feed = document.getElementById("feed");
+
+  function slideEl(cls, innerHtml) {
+    var s = document.createElement("div");
+    s.className = "slide " + cls;
+    s.innerHTML = '<div class="slide-inner">' + innerHtml + "</div>";
+    return s;
+  }
+
+  function contentSlide(item) {
     var html = "";
     if (item.kind === "scriptures") {
-      html = '<div class="card">' +
-        '<div class="kicker"><span>Scripture · KJV</span><span class="theme">' + esc(item.theme) + '</span></div>' +
-        '<p class="scripture-text">“' + esc(item.text) + '”</p>' +
-        '<p class="ref">— ' + esc(item.ref) + '</p></div>';
+      html =
+        '<div class="kicker">Scripture<span class="dot">·</span>KJV<span class="dot">·</span>' + esc(item.theme) + '</div>' +
+        '<div class="flourish"></div>' +
+        '<p class="' + sizeClass(item.text, "s-text") + '">“' + esc(item.text) + '”</p>' +
+        '<p class="s-ref">' + esc(item.ref) + "</p>";
     } else if (item.kind === "devotionals") {
-      html = '<div class="card">' +
-        '<div class="kicker"><span>60-Second Devotional</span><span class="theme">' + esc(item.theme) + '</span></div>' +
-        '<h2 class="devo-title">' + esc(item.title) + '</h2>' +
-        '<div class="devo-ref">' + esc(item.ref) + '</div>' +
-        '<p class="devo-body">' + esc(item.body) + '</p></div>';
+      html =
+        '<div class="kicker">60-Second Devotional<span class="dot">·</span>' + esc(item.theme) + '</div>' +
+        '<h2 class="d-title">' + esc(item.title) + "</h2>" +
+        '<div class="d-ref">' + esc(item.ref) + "</div>" +
+        '<div class="d-body">' + esc(item.body) + "</div>";
     } else {
-      html = '<div class="card">' +
-        '<div class="kicker"><span>Quote</span><span class="theme">' + esc(item.theme) + '</span></div>' +
-        '<p class="quote-text">“' + esc(item.text) + '”</p>' +
-        '<p class="author">— ' + esc(item.author) + '</p></div>';
+      html =
+        '<div class="kicker">Quote<span class="dot">·</span>' + esc(item.theme) + '</div>' +
+        '<div class="flourish"></div>' +
+        '<p class="' + sizeClass(item.text, "q-text") + '">“' + esc(item.text) + '”</p>' +
+        '<p class="s-ref">' + esc(item.author) + "</p>";
     }
-    slot.innerHTML = html;
+    return slideEl(bgClass(item.id), html);
   }
+
+  function followupSlide(pending) {
+    var s = slideEl("bg-followup",
+      '<div class="fu-label">Your commitment</div>' +
+      '<p class="fu-q">Last time you committed to:</p>' +
+      '<p class="fu-commit">“' + esc(pending.text) + '”</p>' +
+      '<p class="fu-q" style="margin-bottom:22px">Did you do it?</p>' +
+      '<div class="btn-row">' +
+      '<button class="yes" id="fu-yes">✓ I did it</button>' +
+      '<button class="later" id="fu-later">Still working on it</button>' +
+      '<button class="no" id="fu-no">Didn’t happen</button>' +
+      "</div>");
+    s.querySelector("#fu-yes").onclick = function () { resolvePending(true); advance(); };
+    s.querySelector("#fu-no").onclick = function () { resolvePending(false); advance(); };
+    s.querySelector("#fu-later").onclick = function () { toast("No rush — I’ll ask again next time 🙏"); advance(); };
+    return s;
+  }
+
+  function advance() {
+    feed.scrollBy({ top: feed.clientHeight, behavior: "smooth" });
+  }
+
+  function appendContent(n) {
+    for (var i = 0; i < (n || 1); i++) { feed.appendChild(contentSlide(nextCard())); }
+  }
+
+  // keep the feed topped up as the user swipes
+  feed.addEventListener("scroll", function () {
+    if (feed.scrollTop + feed.clientHeight * 2.5 >= feed.scrollHeight) { appendContent(2); }
+    var hint = document.getElementById("swipe-hint");
+    if (feed.scrollTop > 40 && !hint.classList.contains("hide")) { hint.classList.add("hide"); }
+  }, { passive: true });
 
   // ---------- journal ----------
   function journal() { return LS.get(K_JOURNAL, []); }
@@ -326,7 +544,6 @@
     journal().forEach(function (e) { days[e.dateKey] = true; });
     var streak = 0;
     var d = new Date();
-    // a streak is alive if you journaled today OR yesterday
     if (!days[dateKey(d)]) { d.setDate(d.getDate() - 1); }
     while (days[dateKey(d)]) { streak += 1; d.setDate(d.getDate() - 1); }
     return streak;
@@ -334,29 +551,9 @@
 
   function renderStreak() {
     var s = computeStreak();
-    document.getElementById("streak").textContent = s > 0 ? "🔥 " + s + "-day streak" : "";
-  }
-
-  // ---------- commitment follow-up ----------
-  function renderFollowup() {
-    var slot = document.getElementById("followup-slot");
-    var pending = LS.get(K_PENDING, null);
-    if (!pending || pending.sessionId === SESSION_ID) { slot.innerHTML = ""; return; }
-    slot.innerHTML =
-      '<div class="card followup">' +
-      '<h3>Your commitment</h3>' +
-      '<p class="commit-text">Last time you committed to:<br><b>“' + esc(pending.text) + '”</b><br>Did you do it?</p>' +
-      '<div class="row">' +
-      '<button class="btn yes" id="fu-yes">✓ I did it</button>' +
-      '<button class="btn later" id="fu-later">Still working on it</button>' +
-      '<button class="btn no" id="fu-no">Didn’t happen</button>' +
-      '</div></div>';
-    document.getElementById("fu-yes").onclick = function () { resolvePending(true); };
-    document.getElementById("fu-no").onclick = function () { resolvePending(false); };
-    document.getElementById("fu-later").onclick = function () {
-      slot.innerHTML = "";
-      toast("No rush — I’ll ask again next time 🙏");
-    };
+    var txt = s > 0 ? "🔥 " + s + "-day streak" : "";
+    document.getElementById("streak").textContent = txt;
+    document.getElementById("streak2").textContent = txt;
   }
 
   function resolvePending(done) {
@@ -369,7 +566,6 @@
       saveJournal(j);
     }
     localStorage.removeItem(K_PENDING);
-    document.getElementById("followup-slot").innerHTML = "";
     toast(done ? "Well done, good and faithful servant! 🎉" : "That’s okay — grace is new every morning.");
     renderHistory();
   }
@@ -423,7 +619,6 @@
     if (commit) {
       LS.set(K_PENDING, { entryId: entry.id, text: commit, sessionId: SESSION_ID });
     }
-    // reset form
     document.getElementById("prayer").value = "";
     document.getElementById("commit").value = "";
     selMood = 0; selFeeling = "";
@@ -466,14 +661,24 @@
   }
 
   // ---------- tabs / toast ----------
-  document.querySelectorAll("nav button").forEach(function (b) {
-    b.onclick = function () {
-      document.querySelectorAll("nav button").forEach(function (x) { x.classList.remove("sel"); });
-      document.querySelectorAll(".view").forEach(function (x) { x.classList.remove("sel"); });
-      b.classList.add("sel");
-      document.getElementById("view-" + b.dataset.view).classList.add("sel");
+  function showView(name) {
+    var today = name === "today";
+    feed.style.display = today ? "" : "none";
+    document.getElementById("feed-header").style.display = today ? "" : "none";
+    document.getElementById("swipe-hint").style.display = today ? "" : "none";
+    document.getElementById("panels").style.display = today ? "none" : "";
+    document.querySelectorAll(".view").forEach(function (x) { x.classList.remove("sel"); });
+    if (!today) {
+      document.getElementById("view-" + name).classList.add("sel");
       window.scrollTo(0, 0);
-    };
+    }
+    document.querySelectorAll("nav button").forEach(function (x) {
+      x.classList.toggle("sel", x.dataset.view === name);
+    });
+  }
+
+  document.querySelectorAll("nav button").forEach(function (b) {
+    b.onclick = function () { showView(b.dataset.view); };
   });
 
   var toastTimer = null;
@@ -493,11 +698,15 @@
   document.getElementById("today-date").textContent =
     new Date().toLocaleDateString(undefined, { month: "long", day: "numeric" });
   buildFeelingChips();
-  renderFollowup();
-  renderCard(nextCard());
+
+  var pending = LS.get(K_PENDING, null);
+  if (pending && pending.sessionId !== SESSION_ID) {
+    feed.appendChild(followupSlide(pending));
+  }
+  appendContent(4);
+
   renderStreak();
   renderHistory();
-  document.getElementById("another").onclick = function () { renderCard(nextCard()); };
 
   if ("serviceWorker" in navigator) {
     navigator.serviceWorker.register("./sw.js").catch(function () {});
