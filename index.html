@@ -76,7 +76,7 @@
        short cards center, tall cards start below the header instead of
        overflowing up underneath it */
     justify-content: flex-start;
-    padding: calc(92px + env(safe-area-inset-top)) 30px 84px;
+    padding: calc(92px + env(safe-area-inset-top)) 30px 58px;
     position: relative;
     overflow: hidden;
   }
@@ -226,20 +226,20 @@
   /* share button on each slide */
   .card-actions {
     display: flex; justify-content: space-between; align-items: center;
-    margin-top: 20px; gap: 10px;
+    margin-top: 12px; gap: 10px;
   }
   .share-btn {
     border: 1px solid rgba(255,255,255,0.4); background: rgba(0,0,0,0.16);
-    color: var(--ink-c); border-radius: 999px; padding: 8px 16px;
-    font-size: 0.82rem; font-weight: 700; cursor: pointer; font-family: inherit;
+    color: var(--ink-c); border-radius: 999px; padding: 5px 13px;
+    font-size: 0.76rem; font-weight: 700; cursor: pointer; font-family: inherit;
     backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px);
   }
   .bg5 .share-btn, .bg5 .fav-btn { border-color: rgba(68,54,38,0.4); background: rgba(255,255,255,0.35); }
   .share-btn:active, .fav-btn:active { opacity: 0.7; }
   .fav-btn {
     border: 1px solid rgba(255,255,255,0.4); background: rgba(0,0,0,0.16);
-    color: var(--ink-c); border-radius: 999px; padding: 8px 16px;
-    font-size: 0.82rem; font-weight: 700; cursor: pointer; font-family: inherit;
+    color: var(--ink-c); border-radius: 999px; padding: 5px 13px;
+    font-size: 0.76rem; font-weight: 700; cursor: pointer; font-family: inherit;
     backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px);
   }
   .fav-btn.on { background: rgba(255, 255, 255, 0.9); color: #a33d3d; border-color: transparent; }
@@ -639,7 +639,7 @@
 
 <!-- ?v must match CACHE_VERSION in sw.js so the app shell and content
      always update together -->
-<script src="./content.js?v=13"></script>
+<script src="./content.js?v=14"></script>
 <script>
 (function () {
   "use strict";
