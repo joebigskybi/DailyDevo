@@ -1,0 +1,508 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>DailyDevo</title>
+<meta name="description" content="A moment with God instead of a scroll.">
+<meta name="theme-color" content="#faf6ef" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#1c1917" media="(prefers-color-scheme: dark)">
+<link rel="manifest" href="./manifest.webmanifest">
+<link rel="apple-touch-icon" href="./icons/apple-touch-icon.png">
+<link rel="icon" href="./icons/icon-192.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="DailyDevo">
+<style>
+  :root {
+    --bg: #faf6ef;
+    --card: #ffffff;
+    --ink: #292524;
+    --ink-soft: #78716c;
+    --accent: #9a6b3f;
+    --accent-soft: #f0e6d8;
+    --gold: #b8860b;
+    --line: #e7e0d4;
+    --good: #4d7c50;
+    --shadow: 0 2px 12px rgba(60, 45, 30, 0.08);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #1c1917;
+      --card: #292524;
+      --ink: #e7e5e4;
+      --ink-soft: #a8a29e;
+      --accent: #d4a373;
+      --accent-soft: #3b332b;
+      --gold: #d4a94e;
+      --line: #3f3a35;
+      --good: #86b389;
+      --shadow: 0 2px 12px rgba(0, 0, 0, 0.35);
+    }
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+  html { height: 100%; }
+  body {
+    background: var(--bg);
+    color: var(--ink);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    min-height: 100%;
+    padding: env(safe-area-inset-top) env(safe-area-inset-right) 0 env(safe-area-inset-left);
+    font-size: 16px;
+    line-height: 1.55;
+  }
+  .wrap { max-width: 540px; margin: 0 auto; padding: 18px 18px 96px; }
+
+  header { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 16px; }
+  header h1 { font-family: Georgia, "Times New Roman", serif; font-size: 1.45rem; font-weight: 600; letter-spacing: 0.01em; }
+  header h1 span { color: var(--accent); }
+  .streak { font-size: 0.85rem; color: var(--ink-soft); font-weight: 600; }
+
+  .card {
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: 18px;
+    padding: 22px 20px;
+    box-shadow: var(--shadow);
+    margin-bottom: 16px;
+  }
+  .kicker {
+    display: flex; align-items: center; justify-content: space-between;
+    font-size: 0.72rem; font-weight: 700; letter-spacing: 0.12em;
+    text-transform: uppercase; color: var(--accent); margin-bottom: 14px;
+  }
+  .kicker .theme { color: var(--ink-soft); font-weight: 600; letter-spacing: 0.08em; }
+
+  .scripture-text, .quote-text {
+    font-family: Georgia, "Times New Roman", serif;
+    font-size: 1.28rem; line-height: 1.6; margin-bottom: 14px;
+  }
+  .ref, .author { font-size: 0.95rem; color: var(--ink-soft); font-style: italic; }
+  .devo-title { font-family: Georgia, serif; font-size: 1.35rem; margin-bottom: 4px; }
+  .devo-ref { font-size: 0.85rem; color: var(--accent); font-weight: 600; margin-bottom: 14px; }
+  .devo-body { font-size: 1.02rem; line-height: 1.65; white-space: pre-wrap; }
+
+  .btn {
+    display: block; width: 100%; border: none; border-radius: 14px;
+    padding: 15px; font-size: 1rem; font-weight: 700; cursor: pointer;
+    background: var(--accent); color: #fff; font-family: inherit;
+  }
+  .btn:active { opacity: 0.85; }
+  .btn.ghost { background: var(--accent-soft); color: var(--accent); }
+  .btn.small { width: auto; padding: 10px 16px; font-size: 0.9rem; display: inline-block; }
+
+  /* Commitment follow-up */
+  .followup { border-left: 4px solid var(--gold); }
+  .followup h3 { font-size: 0.78rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--gold); margin-bottom: 10px; }
+  .followup .commit-text { font-family: Georgia, serif; font-size: 1.1rem; margin-bottom: 16px; }
+  .followup .row { display: flex; gap: 8px; flex-wrap: wrap; }
+  .followup .row .btn { flex: 1; min-width: 100px; padding: 12px 8px; font-size: 0.9rem; }
+  .followup .btn.yes { background: var(--good); color: #fff; }
+  .followup .btn.later { background: var(--accent-soft); color: var(--accent); }
+  .followup .btn.no { background: transparent; color: var(--ink-soft); border: 1px solid var(--line); }
+
+  /* Journal form */
+  label.field { display: block; font-size: 0.82rem; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--ink-soft); margin: 18px 0 8px; }
+  textarea, input[type=text] {
+    width: 100%; background: var(--bg); color: var(--ink);
+    border: 1px solid var(--line); border-radius: 12px;
+    padding: 12px 14px; font-size: 1rem; font-family: inherit; line-height: 1.5;
+  }
+  textarea { min-height: 110px; resize: vertical; }
+  textarea:focus, input:focus { outline: 2px solid var(--accent); outline-offset: 1px; }
+
+  .moods { display: flex; justify-content: space-between; gap: 6px; }
+  .mood {
+    flex: 1; font-size: 1.7rem; padding: 10px 0 6px; border-radius: 12px;
+    border: 1px solid var(--line); background: var(--bg); cursor: pointer; text-align: center;
+  }
+  .mood small { display: block; font-size: 0.6rem; color: var(--ink-soft); margin-top: 2px; }
+  .mood.sel { border-color: var(--accent); background: var(--accent-soft); }
+
+  .chips { display: flex; flex-wrap: wrap; gap: 8px; }
+  .chip {
+    border: 1px solid var(--line); background: var(--bg); color: var(--ink);
+    border-radius: 999px; padding: 7px 14px; font-size: 0.9rem; cursor: pointer; font-family: inherit;
+  }
+  .chip.sel { background: var(--accent); border-color: var(--accent); color: #fff; }
+
+  /* History */
+  .entry { padding: 16px 0; border-bottom: 1px solid var(--line); }
+  .entry:last-child { border-bottom: none; }
+  .entry .date { font-size: 0.8rem; font-weight: 700; color: var(--ink-soft); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 6px; }
+  .entry .prayer { font-family: Georgia, serif; font-size: 1.02rem; margin-bottom: 8px; white-space: pre-wrap; }
+  .entry .meta { font-size: 0.88rem; color: var(--ink-soft); }
+  .entry .meta .kept { color: var(--good); font-weight: 700; }
+  .entry .meta .missed { color: var(--ink-soft); }
+  .entry .meta .open { color: var(--gold); font-weight: 700; }
+  .stats { display: flex; gap: 10px; margin-bottom: 16px; }
+  .stat { flex: 1; text-align: center; background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: 12px 6px; }
+  .stat b { display: block; font-size: 1.4rem; font-family: Georgia, serif; color: var(--accent); }
+  .stat span { font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.06em; color: var(--ink-soft); }
+  .empty { text-align: center; color: var(--ink-soft); padding: 40px 10px; font-style: italic; }
+
+  /* Tabs */
+  nav {
+    position: fixed; bottom: 0; left: 0; right: 0;
+    background: var(--card); border-top: 1px solid var(--line);
+    display: flex; padding-bottom: env(safe-area-inset-bottom);
+  }
+  nav button {
+    flex: 1; background: none; border: none; padding: 12px 0 10px;
+    font-size: 0.75rem; font-weight: 700; color: var(--ink-soft); cursor: pointer; font-family: inherit;
+  }
+  nav button .ico { display: block; font-size: 1.35rem; margin-bottom: 2px; }
+  nav button.sel { color: var(--accent); }
+
+  .view { display: none; }
+  .view.sel { display: block; animation: fade 0.25s ease; }
+  @keyframes fade { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+
+  .toast {
+    position: fixed; left: 50%; bottom: 90px; transform: translateX(-50%) translateY(20px);
+    background: var(--ink); color: var(--bg); padding: 12px 22px; border-radius: 999px;
+    font-size: 0.92rem; font-weight: 600; opacity: 0; pointer-events: none;
+    transition: all 0.3s ease; white-space: nowrap; z-index: 50;
+  }
+  .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+  .center { text-align: center; }
+  .mt { margin-top: 14px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>Daily<span>Devo</span></h1>
+    <div class="streak" id="streak"></div>
+  </header>
+
+  <!-- TODAY -->
+  <section class="view sel" id="view-today">
+    <div id="followup-slot"></div>
+    <div id="content-slot"></div>
+    <button class="btn ghost" id="another">Show me another</button>
+  </section>
+
+  <!-- JOURNAL -->
+  <section class="view" id="view-journal">
+    <div class="card">
+      <div class="kicker"><span>Prayer Journal</span><span class="theme" id="today-date"></span></div>
+
+      <label class="field" for="prayer">My prayer today</label>
+      <textarea id="prayer" placeholder="Lord, today I bring You..."></textarea>
+
+      <label class="field">How is my heart?</label>
+      <div class="moods" id="moods">
+        <button class="mood" data-v="1">😞<small>Struggling</small></button>
+        <button class="mood" data-v="2">😕<small>Low</small></button>
+        <button class="mood" data-v="3">😐<small>Okay</small></button>
+        <button class="mood" data-v="4">🙂<small>Good</small></button>
+        <button class="mood" data-v="5">😄<small>Great</small></button>
+      </div>
+
+      <label class="field">One word for how I feel <span style="font-weight:400;text-transform:none">(optional)</span></label>
+      <div class="chips" id="feelings"></div>
+
+      <label class="field" for="commit">One thing I commit to doing</label>
+      <input type="text" id="commit" placeholder="e.g. Call Mom, take a walk, read one chapter...">
+
+      <button class="btn mt" id="save">Save today's entry</button>
+    </div>
+  </section>
+
+  <!-- HISTORY -->
+  <section class="view" id="view-history">
+    <div class="stats">
+      <div class="stat"><b id="st-entries">0</b><span>Entries</span></div>
+      <div class="stat"><b id="st-streak">0</b><span>Day streak</span></div>
+      <div class="stat"><b id="st-kept">0</b><span>Commitments kept</span></div>
+    </div>
+    <div class="card" id="history-list"></div>
+  </section>
+</div>
+
+<nav>
+  <button data-view="today" class="sel"><span class="ico">✦</span>Today</button>
+  <button data-view="journal"><span class="ico">✎</span>Journal</button>
+  <button data-view="history"><span class="ico">☰</span>History</button>
+</nav>
+
+<div class="toast" id="toast"></div>
+
+<script src="./content.js"></script>
+<script>
+(function () {
+  "use strict";
+
+  // ---------- storage ----------
+  var LS = {
+    get: function (k, fallback) {
+      try { var v = localStorage.getItem(k); return v === null ? fallback : JSON.parse(v); }
+      catch (e) { return fallback; }
+    },
+    set: function (k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} }
+  };
+  var K_DECK = "dd_deck_v1", K_JOURNAL = "dd_journal_v1", K_PENDING = "dd_pending_v1";
+
+  var MOOD_EMOJI = { 1: "😞", 2: "😕", 3: "😐", 4: "🙂", 5: "😄" };
+  var FEELINGS = ["Grateful", "Hopeful", "Peaceful", "Joyful", "Tired", "Anxious", "Stressed", "Sad", "Angry", "Lonely"];
+
+  // ---------- content deck (shuffle-through, no repeats until deck empties) ----------
+  var allItems = {};
+  var allIds = [];
+  ["scriptures", "devotionals", "quotes"].forEach(function (kind) {
+    (CONTENT[kind] || []).forEach(function (item) {
+      item.kind = kind;
+      allItems[item.id] = item;
+      allIds.push(item.id);
+    });
+  });
+
+  function shuffled(arr) {
+    var a = arr.slice();
+    for (var i = a.length - 1; i > 0; i--) {
+      var j = Math.floor(Math.random() * (i + 1));
+      var t = a[i]; a[i] = a[j]; a[j] = t;
+    }
+    return a;
+  }
+
+  function contentSig() { return allIds.slice().sort().join(","); }
+
+  function nextCard() {
+    var deck = LS.get(K_DECK, null);
+    if (!deck || deck.sig !== contentSig() || !deck.ids || deck.idx >= deck.ids.length) {
+      var last = deck && deck.ids ? deck.ids[deck.ids.length - 1] : null;
+      var ids = shuffled(allIds);
+      // don't let the new deck open with the card we just saw
+      if (ids.length > 1 && ids[0] === last) { ids.push(ids.shift()); }
+      deck = { sig: contentSig(), ids: ids, idx: 0 };
+    }
+    var id = deck.ids[deck.idx];
+    deck.idx += 1;
+    LS.set(K_DECK, deck);
+    return allItems[id];
+  }
+
+  function esc(s) {
+    return String(s).replace(/[&<>"]/g, function (c) {
+      return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c];
+    });
+  }
+
+  function renderCard(item) {
+    var slot = document.getElementById("content-slot");
+    var html = "";
+    if (item.kind === "scriptures") {
+      html = '<div class="card">' +
+        '<div class="kicker"><span>Scripture · KJV</span><span class="theme">' + esc(item.theme) + '</span></div>' +
+        '<p class="scripture-text">“' + esc(item.text) + '”</p>' +
+        '<p class="ref">— ' + esc(item.ref) + '</p></div>';
+    } else if (item.kind === "devotionals") {
+      html = '<div class="card">' +
+        '<div class="kicker"><span>60-Second Devotional</span><span class="theme">' + esc(item.theme) + '</span></div>' +
+        '<h2 class="devo-title">' + esc(item.title) + '</h2>' +
+        '<div class="devo-ref">' + esc(item.ref) + '</div>' +
+        '<p class="devo-body">' + esc(item.body) + '</p></div>';
+    } else {
+      html = '<div class="card">' +
+        '<div class="kicker"><span>Quote</span><span class="theme">' + esc(item.theme) + '</span></div>' +
+        '<p class="quote-text">“' + esc(item.text) + '”</p>' +
+        '<p class="author">— ' + esc(item.author) + '</p></div>';
+    }
+    slot.innerHTML = html;
+  }
+
+  // ---------- journal ----------
+  function journal() { return LS.get(K_JOURNAL, []); }
+  function saveJournal(j) { LS.set(K_JOURNAL, j); }
+  function dateKey(d) {
+    return d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0");
+  }
+
+  function computeStreak() {
+    var days = {};
+    journal().forEach(function (e) { days[e.dateKey] = true; });
+    var streak = 0;
+    var d = new Date();
+    // a streak is alive if you journaled today OR yesterday
+    if (!days[dateKey(d)]) { d.setDate(d.getDate() - 1); }
+    while (days[dateKey(d)]) { streak += 1; d.setDate(d.getDate() - 1); }
+    return streak;
+  }
+
+  function renderStreak() {
+    var s = computeStreak();
+    document.getElementById("streak").textContent = s > 0 ? "🔥 " + s + "-day streak" : "";
+  }
+
+  // ---------- commitment follow-up ----------
+  function renderFollowup() {
+    var slot = document.getElementById("followup-slot");
+    var pending = LS.get(K_PENDING, null);
+    if (!pending || pending.sessionId === SESSION_ID) { slot.innerHTML = ""; return; }
+    slot.innerHTML =
+      '<div class="card followup">' +
+      '<h3>Your commitment</h3>' +
+      '<p class="commit-text">Last time you committed to:<br><b>“' + esc(pending.text) + '”</b><br>Did you do it?</p>' +
+      '<div class="row">' +
+      '<button class="btn yes" id="fu-yes">✓ I did it</button>' +
+      '<button class="btn later" id="fu-later">Still working on it</button>' +
+      '<button class="btn no" id="fu-no">Didn’t happen</button>' +
+      '</div></div>';
+    document.getElementById("fu-yes").onclick = function () { resolvePending(true); };
+    document.getElementById("fu-no").onclick = function () { resolvePending(false); };
+    document.getElementById("fu-later").onclick = function () {
+      slot.innerHTML = "";
+      toast("No rush — I’ll ask again next time 🙏");
+    };
+  }
+
+  function resolvePending(done) {
+    var pending = LS.get(K_PENDING, null);
+    if (pending) {
+      var j = journal();
+      for (var i = 0; i < j.length; i++) {
+        if (j[i].id === pending.entryId) { j[i].commitmentDone = done; break; }
+      }
+      saveJournal(j);
+    }
+    localStorage.removeItem(K_PENDING);
+    document.getElementById("followup-slot").innerHTML = "";
+    toast(done ? "Well done, good and faithful servant! 🎉" : "That’s okay — grace is new every morning.");
+    renderHistory();
+  }
+
+  // ---------- journal form ----------
+  var selMood = 0, selFeeling = "";
+
+  function buildFeelingChips() {
+    var box = document.getElementById("feelings");
+    box.innerHTML = "";
+    FEELINGS.forEach(function (f) {
+      var b = document.createElement("button");
+      b.className = "chip"; b.textContent = f;
+      b.onclick = function () {
+        selFeeling = (selFeeling === f) ? "" : f;
+        Array.prototype.forEach.call(box.children, function (c) {
+          c.classList.toggle("sel", c.textContent === selFeeling);
+        });
+      };
+      box.appendChild(b);
+    });
+  }
+
+  document.getElementById("moods").addEventListener("click", function (ev) {
+    var b = ev.target.closest(".mood");
+    if (!b) return;
+    selMood = Number(b.dataset.v);
+    Array.prototype.forEach.call(this.children, function (c) {
+      c.classList.toggle("sel", c === b);
+    });
+  });
+
+  document.getElementById("save").onclick = function () {
+    var prayer = document.getElementById("prayer").value.trim();
+    var commit = document.getElementById("commit").value.trim();
+    if (!prayer && !commit && !selMood) { toast("Write a little something first 🙂"); return; }
+    var now = new Date();
+    var entry = {
+      id: "e" + now.getTime(),
+      ts: now.getTime(),
+      dateKey: dateKey(now),
+      prayer: prayer,
+      mood: selMood || null,
+      feeling: selFeeling || null,
+      commitment: commit || null,
+      commitmentDone: commit ? null : undefined
+    };
+    var j = journal();
+    j.push(entry);
+    saveJournal(j);
+    if (commit) {
+      LS.set(K_PENDING, { entryId: entry.id, text: commit, sessionId: SESSION_ID });
+    }
+    // reset form
+    document.getElementById("prayer").value = "";
+    document.getElementById("commit").value = "";
+    selMood = 0; selFeeling = "";
+    Array.prototype.forEach.call(document.getElementById("moods").children, function (c) { c.classList.remove("sel"); });
+    buildFeelingChips();
+    renderStreak(); renderHistory();
+    toast("Saved. Amen. 🙏");
+  };
+
+  // ---------- history ----------
+  function renderHistory() {
+    var j = journal().slice().reverse();
+    var list = document.getElementById("history-list");
+    document.getElementById("st-entries").textContent = j.length;
+    document.getElementById("st-streak").textContent = computeStreak();
+    document.getElementById("st-kept").textContent = j.filter(function (e) { return e.commitmentDone === true; }).length;
+
+    if (!j.length) {
+      list.innerHTML = '<div class="empty">Your journal is empty.<br>Tonight is a good night to start.</div>';
+      return;
+    }
+    list.innerHTML = j.map(function (e) {
+      var d = new Date(e.ts);
+      var when = d.toLocaleDateString(undefined, { weekday: "short", month: "short", day: "numeric" }) +
+                 " · " + d.toLocaleTimeString(undefined, { hour: "numeric", minute: "2-digit" });
+      var mood = e.mood ? MOOD_EMOJI[e.mood] : "";
+      var feeling = e.feeling ? " " + esc(e.feeling) : "";
+      var commit = "";
+      if (e.commitment) {
+        var status = e.commitmentDone === true ? '<span class="kept">✓ kept</span>'
+                   : e.commitmentDone === false ? '<span class="missed">✗ missed</span>'
+                   : '<span class="open">◦ open</span>';
+        commit = '<div class="meta">Commitment: “' + esc(e.commitment) + '” ' + status + "</div>";
+      }
+      return '<div class="entry">' +
+        '<div class="date">' + when + " " + mood + feeling + "</div>" +
+        (e.prayer ? '<div class="prayer">' + esc(e.prayer) + "</div>" : "") +
+        commit + "</div>";
+    }).join("");
+  }
+
+  // ---------- tabs / toast ----------
+  document.querySelectorAll("nav button").forEach(function (b) {
+    b.onclick = function () {
+      document.querySelectorAll("nav button").forEach(function (x) { x.classList.remove("sel"); });
+      document.querySelectorAll(".view").forEach(function (x) { x.classList.remove("sel"); });
+      b.classList.add("sel");
+      document.getElementById("view-" + b.dataset.view).classList.add("sel");
+      window.scrollTo(0, 0);
+    };
+  });
+
+  var toastTimer = null;
+  function toast(msg) {
+    var t = document.getElementById("toast");
+    t.textContent = msg;
+    t.classList.add("show");
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(function () { t.classList.remove("show"); }, 2600);
+  }
+
+  // ---------- boot ----------
+  // A "session" is one open of the app: pending commitments saved in this
+  // session are only asked about on the NEXT open.
+  var SESSION_ID = "sess" + Date.now() + Math.random().toString(36).slice(2);
+
+  document.getElementById("today-date").textContent =
+    new Date().toLocaleDateString(undefined, { month: "long", day: "numeric" });
+  buildFeelingChips();
+  renderFollowup();
+  renderCard(nextCard());
+  renderStreak();
+  renderHistory();
+  document.getElementById("another").onclick = function () { renderCard(nextCard()); };
+
+  if ("serviceWorker" in navigator) {
+    navigator.serviceWorker.register("./sw.js").catch(function () {});
+  }
+})();
+</script>
+</body>
+</html>
