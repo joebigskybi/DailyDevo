@@ -41,6 +41,17 @@ offline after the first visit.
   (✓ kept / ✗ missed / ◦ open), plus entry count, day streak, and
   commitments kept.
 
+## Background music
+
+The ♫ button in the feed header opens a style picker: Gentle Piano, Quiet
+Guitar, Piano & Strings, or Lofi Focus. Tracks are original instrumental
+loops composed and synthesized specifically for this app (`music/`), so
+there are no third-party rights or attribution requirements. The choice
+persists, and music resumes on your first tap the next time you open the
+app (browsers require a tap before audio can start). Replace or add MP3s
+in `music/` and update the `MUSIC` map in `index.html` to change the
+lineup.
+
 ## Editing content
 
 All content lives in `content.js` — plain JavaScript arrays of scriptures,

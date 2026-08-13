@@ -3,11 +3,11 @@
 // new-shell/old-content skew), and offline users get the full cached app.
 // Bump CACHE_VERSION on every release and keep the content.js ?v query in
 // index.html in sync with it.
-var CACHE_VERSION = "dailydevo-v8";
+var CACHE_VERSION = "dailydevo-v9";
 var ASSETS = [
   "./",
   "./index.html",
-  "./content.js?v=8",
+  "./content.js?v=9",
   "./manifest.webmanifest",
   "./icons/icon-192.png",
   "./icons/icon-512.png",
@@ -34,6 +34,9 @@ self.addEventListener("activate", function (e) {
 
 self.addEventListener("fetch", function (e) {
   if (e.request.method !== "GET") return;
+  // music streams use range requests that service-worker caches handle
+  // badly on iOS — let the browser fetch them natively
+  if (e.request.url.indexOf("/music/") !== -1) return;
   e.respondWith(
     fetch(e.request).then(function (res) {
       if (res && res.ok) {

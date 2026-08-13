@@ -185,13 +185,22 @@
     text-shadow: 0 1px 4px rgba(0,0,0,0.3);
   }
   #feed-header .right { display: flex; align-items: center; }
+  #music-btn {
+    pointer-events: auto; border: 1px solid rgba(255,255,255,0.45);
+    background: rgba(0,0,0,0.18); color: #fff; border-radius: 999px;
+    width: 34px; height: 30px; font-size: 0.95rem; font-weight: 700;
+    cursor: pointer; font-family: inherit; margin-left: 12px;
+    text-shadow: 0 1px 4px rgba(0,0,0,0.3); line-height: 1;
+  }
+  #music-btn.on { background: rgba(255, 255, 255, 0.9); color: #4a3413; text-shadow: none; }
+  .t-big.active { outline: 2px solid rgba(255,255,255,0.8); }
 
   /* bottom sheet */
-  #sheet {
+  #sheet, .msheet {
     position: fixed; inset: 0; z-index: 40; display: none;
     background: rgba(0,0,0,0.45);
   }
-  #sheet.open { display: block; }
+  #sheet.open, .msheet.open { display: block; }
   .sheet-card {
     position: absolute; left: 0; right: 0; bottom: 0;
     background: #2a221b; color: #f0ede8;
@@ -470,6 +479,7 @@
   <h1>Daily<span>Devo</span></h1>
   <div class="right">
     <div class="streak" id="streak"></div>
+    <button id="music-btn" aria-label="Background music">♫</button>
     <button id="theme-btn">✦ Themes</button>
   </div>
 </div>
@@ -552,6 +562,18 @@
 
 <div class="toast" id="toast"></div>
 
+<div id="music-sheet" class="msheet">
+  <div class="sheet-card">
+    <div class="t-head">Background music</div>
+    <div class="t-sub">Original instrumental loops — plays quietly while you read and journal.</div>
+    <button class="t-big secondary" data-music="piano">🎹 Gentle Piano</button>
+    <button class="t-big secondary" data-music="guitar">🎸 Quiet Guitar</button>
+    <button class="t-big secondary" data-music="ensemble">🎼 Piano &amp; Strings</button>
+    <button class="t-big secondary" data-music="lofi">🎧 Lofi Focus</button>
+    <button class="t-big primary" data-music="off">🔇 Off</button>
+  </div>
+</div>
+
 <div id="sheet">
   <div class="sheet-card">
     <div class="t-head">What would you like?</div>
@@ -565,7 +587,7 @@
 
 <!-- ?v must match CACHE_VERSION in sw.js so the app shell and content
      always update together -->
-<script src="./content.js?v=8"></script>
+<script src="./content.js?v=9"></script>
 <script>
 (function () {
   "use strict";
@@ -578,7 +600,7 @@
     },
     set: function (k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} }
   };
-  var K_DECK = "dd_deck_v1", K_JOURNAL = "dd_journal_v1", K_PENDING = "dd_pending_v1", K_TDECK = "dd_themedecks_v1", K_COMMITS = "dd_commits_v1";
+  var K_DECK = "dd_deck_v1", K_JOURNAL = "dd_journal_v1", K_PENDING = "dd_pending_v1", K_TDECK = "dd_themedecks_v1", K_COMMITS = "dd_commits_v1", K_MUSIC = "dd_music_v1";
 
   var MOOD_EMOJI = { 1: "😞", 2: "😕", 3: "😐", 4: "🙂", 5: "😄" };
   var FEELINGS = ["Grateful", "Hopeful", "Peaceful", "Joyful", "Tired", "Anxious", "Stressed", "Sad", "Angry", "Lonely"];
@@ -1240,6 +1262,65 @@
     feed.appendChild(chooserSlide());
   }
   appendContent(4);
+
+  // ---------- background music ----------
+  // Original loops generated for this app (no third-party rights involved).
+  var MUSIC = { piano: "piano", guitar: "guitar", ensemble: "ensemble", lofi: "lofi" };
+  var musicAudio = new Audio();
+  musicAudio.loop = true;
+  musicAudio.volume = 0.45;
+  var musicSheet = document.getElementById("music-sheet");
+  var musicBtn = document.getElementById("music-btn");
+
+  function musicUi() {
+    var style = LS.get(K_MUSIC, null);
+    musicBtn.classList.toggle("on", !!style && !musicAudio.paused);
+    musicSheet.querySelectorAll("[data-music]").forEach(function (b) {
+      b.classList.toggle("active", b.dataset.music === (style || "off"));
+    });
+  }
+
+  function setMusic(style) {
+    if (!style || !MUSIC[style]) {
+      musicAudio.pause();
+      musicAudio.removeAttribute("src");
+      LS.set(K_MUSIC, null);
+      musicUi();
+      return;
+    }
+    var src = "./music/" + MUSIC[style] + ".mp3";
+    if (musicAudio.getAttribute("src") !== src) { musicAudio.src = src; }
+    LS.set(K_MUSIC, style);
+    musicAudio.play().then(musicUi, function () {
+      toast("Couldn’t start audio — check your ringer/silent switch");
+      musicUi();
+    });
+  }
+
+  musicBtn.onclick = function () { musicUi(); musicSheet.classList.add("open"); };
+  musicSheet.addEventListener("click", function (ev) {
+    var b = ev.target.closest("[data-music]");
+    if (b) {
+      setMusic(b.dataset.music === "off" ? null : b.dataset.music);
+      musicSheet.classList.remove("open");
+      return;
+    }
+    if (ev.target === musicSheet) { musicSheet.classList.remove("open"); }
+  });
+  musicAudio.addEventListener("playing", musicUi);
+  musicAudio.addEventListener("pause", musicUi);
+
+  // if music was on last session, resume on the first touch (browsers
+  // require a user gesture before audio can start)
+  var savedStyle = LS.get(K_MUSIC, null);
+  if (savedStyle && MUSIC[savedStyle]) {
+    var resume = function () {
+      document.removeEventListener("pointerdown", resume);
+      if (LS.get(K_MUSIC, null)) { setMusic(LS.get(K_MUSIC, null)); }
+    };
+    document.addEventListener("pointerdown", resume, { once: true });
+  }
+  musicUi();
 
   // themes sheet (header button)
   var sheet = document.getElementById("sheet");
