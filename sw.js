@@ -1,11 +1,13 @@
-// DailyDevo service worker: precache everything so the app works fully
-// offline after the first visit. Bump CACHE_VERSION whenever app files or
-// content change so installed phones pick up the update.
-var CACHE_VERSION = "dailydevo-v5";
+// DailyDevo service worker. Network-first for EVERYTHING with cache
+// fallback: online users always get matching, up-to-date files (no more
+// new-shell/old-content skew), and offline users get the full cached app.
+// Bump CACHE_VERSION on every release and keep the content.js ?v query in
+// index.html in sync with it.
+var CACHE_VERSION = "dailydevo-v6";
 var ASSETS = [
   "./",
   "./index.html",
-  "./content.js",
+  "./content.js?v=6",
   "./manifest.webmanifest",
   "./icons/icon-192.png",
   "./icons/icon-512.png",
@@ -30,28 +32,20 @@ self.addEventListener("activate", function (e) {
   );
 });
 
-// Network-first for navigations (so updates arrive when online),
-// cache-first for everything else (instant + offline).
 self.addEventListener("fetch", function (e) {
   if (e.request.method !== "GET") return;
-  if (e.request.mode === "navigate") {
-    e.respondWith(
-      fetch(e.request).then(function (res) {
-        var copy = res.clone();
-        caches.open(CACHE_VERSION).then(function (c) { c.put(e.request, copy); });
-        return res;
-      }).catch(function () {
-        return caches.match(e.request).then(function (m) { return m || caches.match("./index.html"); });
-      })
-    );
-    return;
-  }
   e.respondWith(
-    caches.match(e.request).then(function (m) {
-      return m || fetch(e.request).then(function (res) {
+    fetch(e.request).then(function (res) {
+      if (res && res.ok) {
         var copy = res.clone();
         caches.open(CACHE_VERSION).then(function (c) { c.put(e.request, copy); });
-        return res;
+      }
+      return res;
+    }).catch(function () {
+      return caches.match(e.request).then(function (m) {
+        if (m) return m;
+        if (e.request.mode === "navigate") return caches.match("./index.html");
+        return Response.error();
       });
     })
   );

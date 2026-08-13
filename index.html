@@ -490,7 +490,9 @@
   </div>
 </div>
 
-<script src="./content.js"></script>
+<!-- ?v must match CACHE_VERSION in sw.js so the app shell and content
+     always update together -->
+<script src="./content.js?v=6"></script>
 <script>
 (function () {
   "use strict";
@@ -560,9 +562,10 @@
   }
 
   function nextThemed(theme) {
+    var pool = themePool(theme);
+    if (!pool.length) { return null; }
     var decks = LS.get(K_TDECK, {});
     var d = decks[theme];
-    var pool = themePool(theme);
     var sig = pool.slice().sort().join(",");
     if (!d || d.sig !== sig || d.idx >= d.ids.length) {
       d = { sig: sig, ids: shuffled(pool), idx: 0 };
@@ -581,6 +584,7 @@
   }
 
   function nextAdvent() {
+    if (!ADVENT.length) { return null; }
     var decks = LS.get(K_TDECK, {});
     var d = decks.advent || { idx: 0 };
     var item = ADVENT[d.idx % ADVENT.length];
@@ -705,7 +709,16 @@
   }
 
   function appendContent(n) {
-    for (var i = 0; i < (n || 1); i++) { feed.appendChild(contentSlide(nextByMode())); }
+    for (var i = 0; i < (n || 1); i++) {
+      var item = nextByMode();
+      if (!item) {
+        // stream unavailable (e.g. stale cached content) — fall back to shuffle
+        mode = { type: "shuffle" };
+        item = nextCard();
+        toast("That stream isn’t available yet — showing the shuffle.");
+      }
+      if (item) { feed.appendChild(contentSlide(item)); }
+    }
   }
 
   function adventLabel() {
@@ -723,7 +736,8 @@
     while (anchor.nextSibling) { feed.removeChild(anchor.nextSibling); }
     appendContent(3);
     advance();
-    if (pick !== "shuffle") {
+    // appendContent resets mode to shuffle if the stream had no content
+    if (pick !== "shuffle" && mode.type !== "shuffle") {
       toast(pick === "advent" ? "Advent — your place is saved 🕯"
             : "Serving " + (pick === "men" ? "encouragement for men" : pick) + " ✨");
     }

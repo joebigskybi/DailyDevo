@@ -46,7 +46,9 @@ offline after the first visit.
 All content lives in `content.js` — plain JavaScript arrays of scriptures,
 devotionals, and quotes. Add or edit items (each needs a unique `id`), and
 the app rebuilds its shuffle deck automatically. After changing any file,
-bump `CACHE_VERSION` in `sw.js` so installed phones pick up the update.
+bump `CACHE_VERSION` in `sw.js` **and** the matching `content.js?v=` query
+in `index.html` (keep the two numbers in sync) so installed phones pick up
+the update as one unit.
 
 ## Files
 
