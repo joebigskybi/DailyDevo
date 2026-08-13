@@ -231,6 +231,24 @@
   .c-date .kept { color: var(--good); font-weight: 700; }
   .c-date .missed { color: var(--ink-soft); }
   .c-date .open { color: var(--gold); font-weight: 700; }
+  .c-date .late { color: #c0564a; font-weight: 700; }
+  .c-group {
+    font-size: 0.72rem; font-weight: 700; letter-spacing: 0.1em;
+    text-transform: uppercase; color: var(--ink-soft); margin: 16px 0 2px;
+  }
+  .c-group:first-child { margin-top: 0; }
+  .c-del {
+    background: none; border: none; color: var(--ink-soft); opacity: 0.55;
+    font-size: 1rem; padding: 6px 2px 6px 8px; cursor: pointer; font-family: inherit;
+    flex: 0 0 auto; margin-top: 2px;
+  }
+  .nc-row { display: flex; gap: 8px; margin-top: 8px; }
+  .nc-row select, .nc-row input[type=date] {
+    flex: 1; min-width: 0; background: var(--bg); color: var(--ink);
+    border: 1px solid var(--line); border-radius: 12px;
+    padding: 11px 12px; font-size: 0.95rem; font-family: inherit;
+  }
+  .nc-row select:focus, .nc-row input[type=date]:focus { outline: 2px solid var(--accent); outline-offset: 1px; }
 
   .flourish { width: 46px; height: 2px; background: currentColor; opacity: 0.45; margin-bottom: 22px; border-radius: 2px; }
 
@@ -497,6 +515,19 @@
       <div class="stat"><b id="cs-kept">0</b><span>Kept</span></div>
     </div>
     <div class="card">
+      <div class="panel-kicker"><span>New Commitment</span></div>
+      <input type="text" id="nc-text" placeholder="One thing I commit to doing...">
+      <div class="nc-row">
+        <select id="nc-recur">
+          <option value="none">One-time</option>
+          <option value="daily">🔁 Daily</option>
+          <option value="weekly">🔁 Weekly</option>
+        </select>
+        <input type="date" id="nc-date" aria-label="Due date (optional)">
+      </div>
+      <button class="btn mt" id="nc-add">Add commitment</button>
+    </div>
+    <div class="card">
       <div class="panel-kicker"><span>My Commitments</span></div>
       <div id="commit-list"></div>
     </div>
@@ -534,7 +565,7 @@
 
 <!-- ?v must match CACHE_VERSION in sw.js so the app shell and content
      always update together -->
-<script src="./content.js?v=7"></script>
+<script src="./content.js?v=8"></script>
 <script>
 (function () {
   "use strict";
@@ -547,7 +578,7 @@
     },
     set: function (k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} }
   };
-  var K_DECK = "dd_deck_v1", K_JOURNAL = "dd_journal_v1", K_PENDING = "dd_pending_v1", K_TDECK = "dd_themedecks_v1";
+  var K_DECK = "dd_deck_v1", K_JOURNAL = "dd_journal_v1", K_PENDING = "dd_pending_v1", K_TDECK = "dd_themedecks_v1", K_COMMITS = "dd_commits_v1";
 
   var MOOD_EMOJI = { 1: "😞", 2: "😕", 3: "😐", 4: "🙂", 5: "😄" };
   var FEELINGS = ["Grateful", "Hopeful", "Peaceful", "Joyful", "Tired", "Anxious", "Stressed", "Sad", "Angry", "Lonely"];
@@ -939,48 +970,198 @@
   };
 
   // ---------- commitments ----------
-  function renderCommits() {
-    var rows = journal().filter(function (e) { return e.commitment; }).reverse();
-    var list = document.getElementById("commit-list");
-    document.getElementById("cs-open").textContent = rows.filter(function (e) { return e.commitmentDone === null; }).length;
-    document.getElementById("cs-kept").textContent = rows.filter(function (e) { return e.commitmentDone === true; }).length;
+  // Standalone commitments (added on the Commit tab) live in K_COMMITS:
+  //   { id, text, ts, due: "YYYY-MM-DD"|null, recur: "none"|"daily"|"weekly",
+  //     done: true|null,            (one-time only)
+  //     log: { periodKey: true } }  (recurring only — completions per day/week)
+  // Journal-entry commitments stay inside their entries as before.
+  function commitsStore() { return LS.get(K_COMMITS, []); }
+  function saveCommitsStore(c) { LS.set(K_COMMITS, c); }
 
-    if (!rows.length) {
-      list.innerHTML = '<div class="empty">No commitments yet.<br>Add one with tonight’s journal entry.</div>';
-      return;
-    }
-    list.innerHTML = rows.map(function (e) {
-      var d = new Date(e.ts);
-      var when = d.toLocaleDateString(undefined, { month: "short", day: "numeric" });
-      var st = e.commitmentDone === true ? ["done", "✓", '<span class="kept">kept</span>']
-             : e.commitmentDone === false ? ["missed", "✗", '<span class="missed">didn’t happen — tap to redeem</span>']
-             : ["open", "", '<span class="open">open — tap the circle when done</span>'];
-      return '<div class="c-row">' +
-        '<button class="c-check ' + st[0] + '" data-id="' + e.id + '">' + st[1] + "</button>" +
-        '<div class="c-body"><div class="c-text' + (e.commitmentDone === true ? " done" : "") + '">' + esc(e.commitment) + "</div>" +
-        '<div class="c-date">' + when + " · " + st[2] + "</div></div></div>";
-    }).join("");
+  function periodKey(recur, d) {
+    d = d ? new Date(d) : new Date();
+    if (recur === "weekly") { d.setDate(d.getDate() - d.getDay()); }
+    return dateKey(d);
+  }
+
+  function recurStreak(c) {
+    var step = c.recur === "weekly" ? 7 : 1;
+    var d = new Date();
+    var n = 0;
+    // current period still pending doesn't break the streak
+    if (!c.log[periodKey(c.recur, d)]) { d.setDate(d.getDate() - step); }
+    while (c.log[periodKey(c.recur, d)]) { n += 1; d.setDate(d.getDate() - step); }
+    return n;
+  }
+
+  function parseDue(s) {
+    var p = s.split("-");
+    return new Date(Number(p[0]), Number(p[1]) - 1, Number(p[2]));
+  }
+
+  function dueLabel(due) {
+    var today = dateKey(new Date());
+    var d = parseDue(due);
+    var txt = d.toLocaleDateString(undefined, { month: "short", day: "numeric" });
+    if (due === today) { return '<span class="open">due today</span>'; }
+    if (due < today) { return '<span class="late">overdue · was due ' + txt + "</span>"; }
+    return "due " + txt;
+  }
+
+  function commitRow(opts) {
+    // opts: {src, id, text, statusCls, mark, strike, line, canDelete}
+    return '<div class="c-row">' +
+      '<button class="c-check ' + opts.statusCls + '" data-src="' + opts.src + '" data-id="' + opts.id + '">' + opts.mark + "</button>" +
+      '<div class="c-body"><div class="c-text' + (opts.strike ? " done" : "") + '">' + esc(opts.text) + "</div>" +
+      '<div class="c-date">' + opts.line + "</div></div>" +
+      (opts.canDelete ? '<button class="c-del" data-del="' + opts.id + '" aria-label="Delete">✕</button>' : "") +
+      "</div>";
+  }
+
+  function renderCommits() {
+    var solo = commitsStore();
+    var recurring = solo.filter(function (c) { return c.recur && c.recur !== "none"; });
+    var oneTime = solo.filter(function (c) { return !c.recur || c.recur === "none"; });
+    var jrows = journal().filter(function (e) { return e.commitment; }).reverse();
+
+    var openCount = 0, keptCount = 0;
+    var openRows = [], doneRows = [], recRows = [];
+
+    recurring.forEach(function (c) {
+      var key = periodKey(c.recur);
+      var doneNow = !!c.log[key];
+      if (doneNow) { keptCount += 1; } else { openCount += 1; }
+      keptCount += Object.keys(c.log).length - (doneNow ? 1 : 0);
+      var streak = recurStreak(c);
+      var line = "🔁 " + c.recur + " · " +
+        (doneNow ? '<span class="kept">done ' + (c.recur === "weekly" ? "this week" : "today") + "</span>"
+                 : '<span class="open">not yet ' + (c.recur === "weekly" ? "this week" : "today") + "</span>") +
+        (streak > 1 ? " · 🔥 " + streak : "");
+      recRows.push(commitRow({ src: "recur", id: c.id, text: c.text,
+        statusCls: doneNow ? "done" : "open", mark: doneNow ? "✓" : "", strike: false, line: line, canDelete: true }));
+    });
+
+    oneTime.sort(function (a, b) {
+      var ad = a.due || "9999", bd = b.due || "9999";
+      return ad < bd ? -1 : ad > bd ? 1 : b.ts - a.ts;
+    }).forEach(function (c) {
+      var added = new Date(c.ts).toLocaleDateString(undefined, { month: "short", day: "numeric" });
+      if (c.done === true) {
+        keptCount += 1;
+        doneRows.push(commitRow({ src: "solo", id: c.id, text: c.text, statusCls: "done", mark: "✓",
+          strike: true, line: added + ' · <span class="kept">kept</span>', canDelete: true }));
+      } else {
+        openCount += 1;
+        var line = c.due ? dueLabel(c.due) : added + ' · <span class="open">open</span>';
+        openRows.push(commitRow({ src: "solo", id: c.id, text: c.text, statusCls: "open", mark: "",
+          strike: false, line: line, canDelete: true }));
+      }
+    });
+
+    jrows.forEach(function (e) {
+      var when = new Date(e.ts).toLocaleDateString(undefined, { month: "short", day: "numeric" });
+      if (e.commitmentDone === true) {
+        keptCount += 1;
+        doneRows.push(commitRow({ src: "journal", id: e.id, text: e.commitment, statusCls: "done", mark: "✓",
+          strike: true, line: when + ' · <span class="kept">kept</span>', canDelete: false }));
+      } else if (e.commitmentDone === false) {
+        doneRows.push(commitRow({ src: "journal", id: e.id, text: e.commitment, statusCls: "missed", mark: "✗",
+          strike: false, line: when + ' · <span class="missed">didn’t happen — tap to redeem</span>', canDelete: false }));
+      } else {
+        openCount += 1;
+        openRows.push(commitRow({ src: "journal", id: e.id, text: e.commitment, statusCls: "open", mark: "",
+          strike: false, line: when + ' · <span class="open">open — tap the circle when done</span>', canDelete: false }));
+      }
+    });
+
+    document.getElementById("cs-open").textContent = openCount;
+    document.getElementById("cs-kept").textContent = keptCount;
+
+    var html = "";
+    if (recRows.length) { html += '<div class="c-group">Recurring</div>' + recRows.join(""); }
+    if (openRows.length) { html += '<div class="c-group">Open</div>' + openRows.join(""); }
+    if (doneRows.length) { html += '<div class="c-group">Done</div>' + doneRows.join(""); }
+    document.getElementById("commit-list").innerHTML =
+      html || '<div class="empty">No commitments yet.<br>Add one above, or with tonight’s journal entry.</div>';
   }
 
   document.getElementById("commit-list").addEventListener("click", function (ev) {
+    var del = ev.target.closest(".c-del");
+    if (del) {
+      var c0 = commitsStore().filter(function (c) { return c.id === del.dataset.del; })[0];
+      if (c0 && window.confirm("Delete “" + c0.text + "”?")) {
+        saveCommitsStore(commitsStore().filter(function (c) { return c.id !== del.dataset.del; }));
+        renderCommits();
+        toast("Deleted");
+      }
+      return;
+    }
     var b = ev.target.closest(".c-check");
     if (!b) return;
-    var j = journal();
-    for (var i = 0; i < j.length; i++) {
-      if (j[i].id !== b.dataset.id) continue;
-      // open or missed -> done; done -> back to open
-      var wasDone = j[i].commitmentDone === true;
-      j[i].commitmentDone = wasDone ? null : true;
-      saveJournal(j);
-      var pending = LS.get(K_PENDING, null);
-      if (pending && pending.entryId === j[i].id) {
-        if (!wasDone) { localStorage.removeItem(K_PENDING); }
+
+    if (b.dataset.src === "recur") {
+      var cs = commitsStore();
+      cs.forEach(function (c) {
+        if (c.id !== b.dataset.id) return;
+        var key = periodKey(c.recur);
+        if (c.log[key]) { delete c.log[key]; }
+        else { c.log[key] = true; toast("Well done, good and faithful servant! 🎉"); }
+      });
+      saveCommitsStore(cs);
+    } else if (b.dataset.src === "solo") {
+      var cs2 = commitsStore();
+      cs2.forEach(function (c) {
+        if (c.id !== b.dataset.id) return;
+        c.done = c.done === true ? null : true;
+        if (c.done) { toast("Well done, good and faithful servant! 🎉"); }
+      });
+      saveCommitsStore(cs2);
+    } else {
+      var j = journal();
+      for (var i = 0; i < j.length; i++) {
+        if (j[i].id !== b.dataset.id) continue;
+        var wasDone = j[i].commitmentDone === true;
+        j[i].commitmentDone = wasDone ? null : true;
+        saveJournal(j);
+        var pending = LS.get(K_PENDING, null);
+        if (pending && pending.entryId === j[i].id && !wasDone) {
+          localStorage.removeItem(K_PENDING);
+        }
+        if (!wasDone) { toast("Well done, good and faithful servant! 🎉"); }
+        break;
       }
-      if (!wasDone) { toast("Well done, good and faithful servant! 🎉"); }
-      break;
     }
     renderCommits(); renderHistory();
   });
+
+  // add-commitment form
+  var ncRecur = document.getElementById("nc-recur");
+  var ncDate = document.getElementById("nc-date");
+  ncRecur.onchange = function () {
+    // a due date only applies to one-time commitments
+    ncDate.style.display = ncRecur.value === "none" ? "" : "none";
+  };
+  document.getElementById("nc-add").onclick = function () {
+    var text = document.getElementById("nc-text").value.trim();
+    if (!text) { toast("Write the commitment first 🙂"); return; }
+    var recur = ncRecur.value;
+    var c = { id: "c" + Date.now(), text: text, ts: Date.now(), recur: recur };
+    if (recur === "none") {
+      c.due = ncDate.value || null;
+      c.done = null;
+    } else {
+      c.log = {};
+    }
+    var cs = commitsStore();
+    cs.push(c);
+    saveCommitsStore(cs);
+    document.getElementById("nc-text").value = "";
+    ncDate.value = "";
+    ncRecur.value = "none";
+    ncDate.style.display = "";
+    renderCommits();
+    toast(recur === "none" ? "Commitment added 💪" : "Recurring commitment added 🔁");
+  };
 
   // ---------- history ----------
   function renderHistory() {
