@@ -123,6 +123,85 @@
   }
   .d-more.show { opacity: 0.65; animation: bob 1.6s ease-in-out infinite; }
 
+  /* hymn slides */
+  .h-title { font-family: Georgia, serif; font-size: 1.55rem; line-height: 1.25; margin-bottom: 4px; }
+  .h-meta { font-size: 0.82rem; letter-spacing: 0.06em; opacity: 0.75; margin-bottom: 20px; }
+  .h-text {
+    font-family: Georgia, serif; font-style: italic;
+    font-size: 1.3rem; line-height: 1.65; white-space: pre-line;
+    border-left: 2px solid currentColor; padding-left: 16px;
+  }
+  .h-text.long { font-size: 1.12rem; }
+
+  /* advent slides */
+  .a-verse {
+    font-family: Georgia, serif; font-style: italic;
+    font-size: 1.05rem; line-height: 1.55; opacity: 0.92; margin-bottom: 16px;
+  }
+  .bg-advent {
+    --ink-c: #f2ecfa;
+    background-color: #150f2d;
+    background-image:
+      radial-gradient(1.5px 1.5px at 18% 22%, rgba(255,255,255,0.85), transparent 100%),
+      radial-gradient(1px 1px at 72% 12%, rgba(255,255,255,0.6), transparent 100%),
+      radial-gradient(1.5px 1.5px at 88% 34%, rgba(255,255,255,0.7), transparent 100%),
+      radial-gradient(1px 1px at 34% 46%, rgba(255,255,255,0.5), transparent 100%),
+      radial-gradient(1px 1px at 60% 70%, rgba(255,255,255,0.45), transparent 100%),
+      radial-gradient(2px 2px at 50% 6%, rgba(255, 230, 160, 0.95), transparent 100%),
+      radial-gradient(ellipse 120% 45% at 50% 115%, rgba(212, 169, 78, 0.3), transparent 65%),
+      linear-gradient(180deg, #120d28 0%, #1e1640 55%, #34215a 100%);
+  }
+
+  /* chooser slide + theme sheet */
+  .bg-chooser {
+    --ink-c: #f0ede8;
+    background:
+      radial-gradient(ellipse 100% 55% at 50% -10%, rgba(212, 163, 115, 0.25), transparent 65%),
+      linear-gradient(180deg, #211b16 0%, #33291f 60%, #46372a 100%);
+  }
+  .t-head { font-family: Georgia, serif; font-size: 1.5rem; margin-bottom: 6px; }
+  .t-sub { font-size: 0.92rem; opacity: 0.8; margin-bottom: 20px; }
+  .t-big {
+    display: block; width: 100%; border: none; border-radius: 14px;
+    padding: 14px; font-size: 0.98rem; font-weight: 700; cursor: pointer;
+    font-family: inherit; margin-bottom: 10px; text-align: left; padding-left: 18px;
+  }
+  .t-big.primary { background: rgba(255, 255, 255, 0.92); color: #4a3413; }
+  .t-big.secondary { background: rgba(255, 255, 255, 0.14); color: var(--ink-c); }
+  .t-chips { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 6px; }
+  .t-chip {
+    border: 1px solid rgba(255,255,255,0.35); background: transparent; color: var(--ink-c);
+    border-radius: 999px; padding: 8px 15px; font-size: 0.88rem; cursor: pointer;
+    font-family: inherit; text-transform: capitalize;
+  }
+  .t-chip:active, .t-big:active { opacity: 0.8; }
+
+  /* themes button in feed header */
+  #theme-btn {
+    pointer-events: auto; border: 1px solid rgba(255,255,255,0.45);
+    background: rgba(0,0,0,0.18); color: #fff; border-radius: 999px;
+    padding: 6px 14px; font-size: 0.78rem; font-weight: 700; letter-spacing: 0.04em;
+    cursor: pointer; font-family: inherit; margin-left: 12px;
+    text-shadow: 0 1px 4px rgba(0,0,0,0.3);
+  }
+  #feed-header .right { display: flex; align-items: center; }
+
+  /* bottom sheet */
+  #sheet {
+    position: fixed; inset: 0; z-index: 40; display: none;
+    background: rgba(0,0,0,0.45);
+  }
+  #sheet.open { display: block; }
+  .sheet-card {
+    position: absolute; left: 0; right: 0; bottom: 0;
+    background: #2a221b; color: #f0ede8;
+    border-radius: 22px 22px 0 0; padding: 22px 20px calc(20px + env(safe-area-inset-bottom));
+    max-width: 540px; margin: 0 auto;
+    animation: sheetUp 0.28s ease;
+  }
+  @keyframes sheetUp { from { transform: translateY(40px); opacity: 0; } to { transform: none; opacity: 1; } }
+  .sheet-card .t-head { font-size: 1.25rem; }
+
   .flourish { width: 46px; height: 2px; background: currentColor; opacity: 0.45; margin-bottom: 22px; border-radius: 2px; }
 
   /* ---- slide background designs ---- */
@@ -341,7 +420,10 @@
 <!-- TODAY: full-screen swipe feed -->
 <div id="feed-header">
   <h1>Daily<span>Devo</span></h1>
-  <div class="streak" id="streak"></div>
+  <div class="right">
+    <div class="streak" id="streak"></div>
+    <button id="theme-btn">✦ Themes</button>
+  </div>
 </div>
 <div id="feed"></div>
 <div id="swipe-hint"><span class="chev">︿</span>Swipe up for another</div>
@@ -397,6 +479,17 @@
 
 <div class="toast" id="toast"></div>
 
+<div id="sheet">
+  <div class="sheet-card">
+    <div class="t-head">What would you like?</div>
+    <div class="t-sub">Pick a stream, or let the app surprise you.</div>
+    <button class="t-big primary" data-pick="shuffle">✦ Surprise me — a bit of everything</button>
+    <button class="t-big secondary" data-pick="advent" id="sheet-advent">🕯 Advent</button>
+    <button class="t-big secondary" data-pick="men">⚒ For men, husbands &amp; fathers</button>
+    <div class="t-chips" id="sheet-chips"></div>
+  </div>
+</div>
+
 <script src="./content.js"></script>
 <script>
 (function () {
@@ -410,22 +503,29 @@
     },
     set: function (k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} }
   };
-  var K_DECK = "dd_deck_v1", K_JOURNAL = "dd_journal_v1", K_PENDING = "dd_pending_v1";
+  var K_DECK = "dd_deck_v1", K_JOURNAL = "dd_journal_v1", K_PENDING = "dd_pending_v1", K_TDECK = "dd_themedecks_v1";
 
   var MOOD_EMOJI = { 1: "😞", 2: "😕", 3: "😐", 4: "🙂", 5: "😄" };
   var FEELINGS = ["Grateful", "Hopeful", "Peaceful", "Joyful", "Tired", "Anxious", "Stressed", "Sad", "Angry", "Lonely"];
   var BG_COUNT = 8;
 
   // ---------- content deck ----------
+  // advent is a sequential series, kept out of the daily shuffle
   var allItems = {};
   var allIds = [];
-  ["scriptures", "devotionals", "quotes"].forEach(function (kind) {
+  ["scriptures", "devotionals", "quotes", "hymns", "men"].forEach(function (kind) {
     (CONTENT[kind] || []).forEach(function (item) {
       item.kind = kind;
       allItems[item.id] = item;
       allIds.push(item.id);
     });
   });
+  var ADVENT = (CONTENT.advent || []).slice().sort(function (a, b) { return a.day - b.day; });
+  ADVENT.forEach(function (item) { item.kind = "advent"; });
+  var THEMES = ["peace", "strength", "trust", "gratitude", "hope", "courage", "joy", "purpose", "forgiveness", "rest"];
+
+  // what the feed is currently serving; themed decks remember their position
+  var mode = { type: "shuffle" };
 
   function shuffled(arr) {
     var a = arr.slice();
@@ -450,6 +550,50 @@
     deck.idx += 1;
     LS.set(K_DECK, deck);
     return allItems[id];
+  }
+
+  // per-theme decks: shuffled once, position saved, so you resume where
+  // you left off in a theme even across app opens
+  function themePool(theme) {
+    if (theme === "men") { return allIds.filter(function (id) { return allItems[id].kind === "men"; }); }
+    return allIds.filter(function (id) { return allItems[id].theme === theme; });
+  }
+
+  function nextThemed(theme) {
+    var decks = LS.get(K_TDECK, {});
+    var d = decks[theme];
+    var pool = themePool(theme);
+    var sig = pool.slice().sort().join(",");
+    if (!d || d.sig !== sig || d.idx >= d.ids.length) {
+      d = { sig: sig, ids: shuffled(pool), idx: 0 };
+    }
+    var id = d.ids[d.idx];
+    d.idx += 1;
+    decks[theme] = d;
+    LS.set(K_TDECK, decks);
+    return allItems[id];
+  }
+
+  // advent runs in day order and remembers which day you're on
+  function adventPos() {
+    var decks = LS.get(K_TDECK, {});
+    return (decks.advent && decks.advent.idx) ? decks.advent.idx : 0;
+  }
+
+  function nextAdvent() {
+    var decks = LS.get(K_TDECK, {});
+    var d = decks.advent || { idx: 0 };
+    var item = ADVENT[d.idx % ADVENT.length];
+    d.idx = (d.idx + 1) % ADVENT.length;
+    decks.advent = d;
+    LS.set(K_TDECK, decks);
+    return item;
+  }
+
+  function nextByMode() {
+    if (mode.type === "advent") { return nextAdvent(); }
+    if (mode.type === "theme") { return nextThemed(mode.theme); }
+    return nextCard();
   }
 
   function esc(s) {
@@ -482,7 +626,7 @@
   }
 
   function contentSlide(item) {
-    var html = "";
+    var html = "", bg = bgClass(item.id);
     if (item.kind === "scriptures") {
       html =
         '<div class="kicker">Scripture<span class="dot">·</span>KJV<span class="dot">·</span>' + esc(item.theme) + '</div>' +
@@ -496,6 +640,27 @@
         '<div class="d-ref">' + esc(item.ref) + "</div>" +
         '<div class="d-body">' + esc(item.body) + "</div>" +
         '<div class="d-more">⌄</div>';
+    } else if (item.kind === "hymns") {
+      html =
+        '<div class="kicker">Classic Hymn<span class="dot">·</span>' + esc(item.theme) + '</div>' +
+        '<h2 class="h-title">' + esc(item.title) + "</h2>" +
+        '<div class="h-meta">' + esc(item.author) + ", " + esc(item.year) + "</div>" +
+        '<p class="' + (item.text.length > 220 ? "h-text long" : "h-text") + '">' + esc(item.text) + "</p>";
+    } else if (item.kind === "men") {
+      html =
+        '<div class="kicker">Men<span class="dot">·</span>Husbands<span class="dot">·</span>Fathers</div>' +
+        '<div class="flourish"></div>' +
+        '<p class="' + sizeClass(item.text, "q-text") + '">“' + esc(item.text) + '”</p>' +
+        '<p class="s-ref">' + esc(item.author) + "</p>";
+    } else if (item.kind === "advent") {
+      bg = "bg-advent";
+      html =
+        '<div class="kicker">Advent<span class="dot">·</span>Day ' + item.day + " of " + ADVENT.length + '</div>' +
+        '<h2 class="d-title">' + esc(item.title) + "</h2>" +
+        '<div class="d-ref">' + esc(item.ref) + "</div>" +
+        '<p class="a-verse">“' + esc(item.verse) + '”</p>' +
+        '<div class="d-body">' + esc(item.body) + "</div>" +
+        '<div class="d-more">⌄</div>';
     } else {
       html =
         '<div class="kicker">Quote<span class="dot">·</span>' + esc(item.theme) + '</div>' +
@@ -503,7 +668,7 @@
         '<p class="' + sizeClass(item.text, "q-text") + '">“' + esc(item.text) + '”</p>' +
         '<p class="s-ref">' + esc(item.author) + "</p>";
     }
-    var s = slideEl(bgClass(item.id), html);
+    var s = slideEl(bg, html);
     var body = s.querySelector(".d-body");
     if (body) {
       var moreEl = s.querySelector(".d-more");
@@ -540,7 +705,50 @@
   }
 
   function appendContent(n) {
-    for (var i = 0; i < (n || 1); i++) { feed.appendChild(contentSlide(nextCard())); }
+    for (var i = 0; i < (n || 1); i++) { feed.appendChild(contentSlide(nextByMode())); }
+  }
+
+  function adventLabel() {
+    var pos = adventPos();
+    return pos > 0 ? "🕯 Advent — resume Day " + (pos + 1) + " of " + ADVENT.length
+                   : "🕯 Advent — start Day 1 of " + ADVENT.length;
+  }
+
+  // switch what the feed serves; anchor = slide to keep, everything after
+  // it is replaced with the new stream
+  function choose(pick, anchor) {
+    if (pick === "shuffle") { mode = { type: "shuffle" }; }
+    else if (pick === "advent") { mode = { type: "advent" }; }
+    else { mode = { type: "theme", theme: pick }; }
+    while (anchor.nextSibling) { feed.removeChild(anchor.nextSibling); }
+    appendContent(3);
+    advance();
+    if (pick !== "shuffle") {
+      toast(pick === "advent" ? "Advent — your place is saved 🕯"
+            : "Serving " + (pick === "men" ? "encouragement for men" : pick) + " ✨");
+    }
+  }
+
+  // full-screen "what's next?" slide, shown after answering a commitment
+  function chooserSlide() {
+    var chips = THEMES.map(function (t) {
+      return '<button class="t-chip" data-pick="' + t + '">' + t + "</button>";
+    }).join("");
+    var s = slideEl("bg-chooser",
+      '<div class="fu-label">What’s next?</div>' +
+      '<div class="t-head">What does your heart need today?</div>' +
+      '<div class="t-sub">Pick a stream, or let the app surprise you.</div>' +
+      '<button class="t-big primary" data-pick="shuffle">✦ Surprise me — a bit of everything</button>' +
+      '<button class="t-big secondary" data-pick="advent">' + esc(adventLabel()) + "</button>" +
+      '<button class="t-big secondary" data-pick="men">⚒ For men, husbands &amp; fathers</button>' +
+      '<div class="t-chips">' + chips + "</div>");
+    s.addEventListener("click", function (ev) {
+      var b = ev.target.closest("[data-pick]");
+      if (!b) return;
+      if (b.dataset.pick === "shuffle") { advance(); return; }
+      choose(b.dataset.pick, s);
+    });
+    return s;
   }
 
   // keep the feed topped up as the user swipes
@@ -720,8 +928,30 @@
   var pending = LS.get(K_PENDING, null);
   if (pending && pending.sessionId !== SESSION_ID) {
     feed.appendChild(followupSlide(pending));
+    feed.appendChild(chooserSlide());
   }
   appendContent(4);
+
+  // themes sheet (header button)
+  var sheet = document.getElementById("sheet");
+  document.getElementById("sheet-chips").innerHTML = THEMES.map(function (t) {
+    return '<button class="t-chip" data-pick="' + t + '">' + t + "</button>";
+  }).join("");
+  document.getElementById("theme-btn").onclick = function () {
+    document.getElementById("sheet-advent").textContent = adventLabel();
+    sheet.classList.add("open");
+  };
+  sheet.addEventListener("click", function (ev) {
+    var b = ev.target.closest("[data-pick]");
+    if (b) {
+      var idx = Math.round(feed.scrollTop / feed.clientHeight);
+      var anchor = feed.children[Math.min(idx, feed.children.length - 1)];
+      choose(b.dataset.pick, anchor);
+      sheet.classList.remove("open");
+      return;
+    }
+    if (ev.target === sheet) { sheet.classList.remove("open"); }
+  });
 
   renderStreak();
   renderHistory();

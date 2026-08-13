@@ -22,10 +22,19 @@ offline after the first visit.
 
 ## How it works
 
-- **Today** — serves the next card from a shuffled deck of all content
-  (60 scriptures, 24 devotionals, 36 quotes). No repeats until the whole
-  library has cycled, then it reshuffles. If your last journal entry had a
-  commitment, the app asks whether you did it before anything else.
+- **Today** — a full-screen swipe feed served from a shuffled deck of all
+  content (60 scriptures, 24 devotionals, 36 quotes, 16 classic hymns,
+  16 quotes for men/husbands/fathers). No repeats until the whole library
+  has cycled, then it reshuffles. If your last journal entry had a
+  commitment, the app asks whether you did it before anything else, then
+  asks what you'd like next — the shuffle, a theme (peace, courage,
+  hope...), the men's stream, or Advent.
+- **Themes** — the ✦ Themes button (or the post-commitment chooser) serves
+  a single theme. Each theme deck remembers your position, so you resume
+  where you left off.
+- **Advent** — a 24-day sequential series (Day 1 → 24) with its own look;
+  the app saves which day you're on so you can pick it back up anytime.
+  Kept out of the daily shuffle.
 - **Journal** — write a prayer, tap a mood (5-point emoji scale), pick an
   optional feeling word, and commit to one thing.
 - **History** — every entry with mood, prayer, and commitment status
