@@ -35,6 +35,13 @@ offline after the first visit.
 - **Advent** — a 24-day sequential series (Day 1 → 24) with its own look;
   the app saves which day you're on so you can pick it back up anytime.
   Kept out of the daily shuffle.
+- **Morning & Evening** — Charles Spurgeon's classic 1865 daily devotional
+  (public domain), all 366 days with both readings. Pick it in the Themes
+  sheet and it serves today's reading automatically — morning entry before
+  5pm, evening after — then the other half and following days as you
+  swipe. Text lazy-loads (`spurgeon-me.js`, ~1.4 MB) on first use and is
+  precached for offline. Source text via the public-domain dataset in
+  github.com/russianryebread/morning-and-evening.
 - **Journal** — write a prayer, tap a mood (5-point emoji scale), pick an
   optional feeling word, and commit to one thing.
 - **History** — every entry with mood, prayer, and commitment status

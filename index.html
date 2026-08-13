@@ -122,6 +122,9 @@
     transition: opacity 0.3s ease; pointer-events: none;
   }
   .d-more.show { opacity: 0.65; animation: bob 1.6s ease-in-out infinite; }
+  /* Spurgeon readings are long — keep the column inside the slide */
+  .sp-slide .d-body { max-height: 42vh; }
+  .sp-slide .a-verse { font-size: 1.15rem; }
 
   /* hymn slides */
   .h-title { font-family: Georgia, serif; font-size: 1.55rem; line-height: 1.25; margin-bottom: 4px; }
@@ -580,6 +583,7 @@
     <div class="t-sub">Pick a stream, or let the app surprise you.</div>
     <button class="t-big primary" data-pick="shuffle">✦ Surprise me — a bit of everything</button>
     <button class="t-big secondary" data-pick="advent" id="sheet-advent">🕯 Advent</button>
+    <button class="t-big secondary" data-pick="spurgeon">📖 Morning &amp; Evening — Spurgeon</button>
     <button class="t-big secondary" data-pick="men">⚒ For men, husbands &amp; fathers</button>
     <div class="t-chips" id="sheet-chips"></div>
   </div>
@@ -587,7 +591,7 @@
 
 <!-- ?v must match CACHE_VERSION in sw.js so the app shell and content
      always update together -->
-<script src="./content.js?v=9"></script>
+<script src="./content.js?v=10"></script>
 <script>
 (function () {
   "use strict";
@@ -689,7 +693,41 @@
     return item;
   }
 
+  // Spurgeon's Morning & Evening (1865): serves today's reading for the
+  // current time of day, then the other half, then following days.
+  // Text lazy-loads from spurgeon-me.js on first use.
+  var spState = null;
+  function spInit() {
+    var now = new Date();
+    spState = { d: new Date(now.getFullYear(), now.getMonth(), now.getDate()),
+                half: now.getHours() >= 17 ? "pm" : "am" };
+  }
+  function nextSpurgeon() {
+    if (!window.SPURGEON_ME) { return null; }
+    if (!spState) { spInit(); }
+    var key = (spState.d.getMonth() + 1) + "-" + spState.d.getDate();
+    var day = window.SPURGEON_ME[key];
+    if (!day) { return null; }
+    var half = spState.half;
+    var entry = day[half];
+    var item = { kind: "spurgeon", id: "sp" + key + half, verse: entry[0], ref: entry[1],
+                 body: entry[2], half: half,
+                 dateLabel: spState.d.toLocaleDateString(undefined, { month: "long", day: "numeric" }) };
+    if (half === "am") { spState.half = "pm"; }
+    else { spState.half = "am"; spState.d.setDate(spState.d.getDate() + 1); }
+    return item;
+  }
+  function loadSpurgeon(cb) {
+    if (window.SPURGEON_ME) { cb(true); return; }
+    var s = document.createElement("script");
+    s.src = "./spurgeon-me.js?v=10";
+    s.onload = function () { cb(true); };
+    s.onerror = function () { cb(false); };
+    document.head.appendChild(s);
+  }
+
   function nextByMode() {
+    if (mode.type === "spurgeon") { return nextSpurgeon(); }
     if (mode.type === "advent") { return nextAdvent(); }
     if (mode.type === "theme") { return nextThemed(mode.theme); }
     return nextCard();
@@ -751,6 +789,16 @@
         '<div class="flourish"></div>' +
         '<p class="' + sizeClass(item.text, "q-text") + '">“' + esc(item.text) + '”</p>' +
         '<p class="s-ref">' + esc(item.author) + "</p>";
+    } else if (item.kind === "spurgeon") {
+      bg = (item.half === "pm" ? "bg1" : "bg5") + " sp-slide";
+      html =
+        '<div class="kicker">Morning &amp; Evening<span class="dot">·</span>' + esc(item.dateLabel) +
+        '<span class="dot">·</span>' + (item.half === "pm" ? "Evening" : "Morning") + '</div>' +
+        '<p class="a-verse">“' + esc(item.verse) + '”</p>' +
+        '<div class="d-ref">' + esc(item.ref) + "</div>" +
+        '<div class="d-body">' + esc(item.body) + "</div>" +
+        '<div class="d-more">⌄</div>' +
+        '<div class="h-meta" style="margin-top:14px">— C.H. Spurgeon, 1865</div>';
     } else if (item.kind === "advent") {
       bg = "bg-advent";
       html =
@@ -814,6 +862,7 @@
     if (item.kind === "devotionals") { return item.title + " · " + item.ref + "\n\n" + item.body; }
     if (item.kind === "hymns") { return item.text + "\n\n— “" + item.title + "”, " + item.author + " (" + item.year + ")"; }
     if (item.kind === "advent") { return "Advent, Day " + item.day + ": " + item.title + "\n\n“" + item.verse + "” — " + item.ref + "\n\n" + item.body; }
+    if (item.kind === "spurgeon") { return "Morning & Evening — " + item.dateLabel + " " + (item.half === "pm" ? "Evening" : "Morning") + "\n\n“" + item.verse + "” — " + item.ref + "\n\n" + item.body + "\n\n— C.H. Spurgeon"; }
     return "“" + item.text + "”\n— " + item.author;
   }
 
@@ -853,8 +902,17 @@
   // switch what the feed serves; anchor = slide to keep, everything after
   // it is replaced with the new stream
   function choose(pick, anchor) {
+    if (pick === "spurgeon" && !window.SPURGEON_ME) {
+      toast("Loading Morning & Evening…");
+      loadSpurgeon(function (ok) {
+        if (ok) { choose(pick, anchor); }
+        else { toast("Couldn’t load — check your connection"); }
+      });
+      return;
+    }
     if (pick === "shuffle") { mode = { type: "shuffle" }; }
     else if (pick === "advent") { mode = { type: "advent" }; }
+    else if (pick === "spurgeon") { spState = null; mode = { type: "spurgeon" }; }
     else { mode = { type: "theme", theme: pick }; }
     while (anchor.nextSibling) { feed.removeChild(anchor.nextSibling); }
     appendContent(3);
@@ -862,6 +920,7 @@
     // appendContent resets mode to shuffle if the stream had no content
     if (pick !== "shuffle" && mode.type !== "shuffle") {
       toast(pick === "advent" ? "Advent — your place is saved 🕯"
+            : pick === "spurgeon" ? "Spurgeon’s Morning & Evening 📖"
             : "Serving " + (pick === "men" ? "encouragement for men" : pick) + " ✨");
     }
   }
@@ -877,6 +936,7 @@
       '<div class="t-sub">Pick a stream, or let the app surprise you.</div>' +
       '<button class="t-big primary" data-pick="shuffle">✦ Surprise me — a bit of everything</button>' +
       '<button class="t-big secondary" data-pick="advent">' + esc(adventLabel()) + "</button>" +
+      '<button class="t-big secondary" data-pick="spurgeon">📖 Morning &amp; Evening — Spurgeon</button>' +
       '<button class="t-big secondary" data-pick="men">⚒ For men, husbands &amp; fathers</button>' +
       '<div class="t-chips">' + chips + "</div>");
     s.addEventListener("click", function (ev) {
