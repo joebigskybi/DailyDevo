@@ -199,6 +199,27 @@ const CONTENT = {
     { id: "m16", author: "DailyDevo", theme: "men", text: "Your children will not remember your hours at the office. They will remember whether your eyes lit up when they walked into the room." }
   ],
 
+  // For women, wives & mothers. Historical quotes are public domain;
+  // items by "DailyDevo" are original to this app.
+  women: [
+    { id: "w01", author: "Susanna Wesley", theme: "women", text: "I am content to fill a little space if God be glorified." },
+    { id: "w02", author: "Susanna Wesley", theme: "women", text: "Whatever weakens your reason, impairs the tenderness of your conscience, obscures your sense of God, or takes off the relish of spiritual things — that thing is sin to you." },
+    { id: "w03", author: "Hannah Whitall Smith", theme: "women", text: "The greatest burden we have to carry in life is self. The most difficult thing we have to manage is self." },
+    { id: "w04", author: "Elizabeth Prentiss", theme: "women", text: "To love Christ more — this is the deepest need, the constant cry of my soul." },
+    { id: "w05", author: "Fanny Crosby", theme: "women", text: "If I had a choice, I would still choose to remain blind... for when I die, the first face I will ever see will be the face of my blessed Saviour." },
+    { id: "w06", author: "Catherine Booth", theme: "women", text: "If we are to better the future we must disturb the present." },
+    { id: "w07", author: "Frances Ridley Havergal", theme: "women", text: "Like a river glorious is God's perfect peace, over all victorious in its bright increase; perfect, yet it floweth fuller every day; perfect, yet it groweth deeper all the way." },
+    { id: "w08", author: "Christina Rossetti", theme: "women", text: "What can I give Him, poor as I am? If I were a shepherd, I would bring a lamb; if I were a wise man, I would do my part; yet what I can I give Him — give my heart." },
+    { id: "w09", author: "Mary Slessor", theme: "women", text: "Prayer is the greatest power God has put into our hands for service — praying is harder than doing, at least I find it so." },
+    { id: "w10", author: "Harriet Beecher Stowe", theme: "women", text: "When you get into a tight place and everything goes against you, till it seems as though you could not hang on a minute longer, never give up then, for that is just the place and time that the tide will turn." },
+    { id: "w11", author: "DailyDevo", theme: "women", text: "A mother's quiet faithfulness preaches a lifetime of sermons. The hands that fold laundry and wipe tears are writing theology your children will never forget." },
+    { id: "w12", author: "DailyDevo", theme: "women", text: "Pray out loud in front of your children sometimes. Let them grow up knowing what a woman sounds like when she talks to God." },
+    { id: "w13", author: "DailyDevo", theme: "women", text: "Strength and gentleness are not opposites. She is clothed with strength and dignity — and she laughs at the days to come." },
+    { id: "w14", author: "DailyDevo", theme: "women", text: "You are not behind. The Shepherd sets the pace for the flock, and He gently leads those that are with young." },
+    { id: "w15", author: "DailyDevo", theme: "women", text: "Your worth was settled before your to-do list existed. Martha was busy for Jesus; Mary sat with Him. Only one thing is needful." },
+    { id: "w16", author: "DailyDevo", theme: "women", text: "The world measures a home by its square footage. Heaven measures it by its warmth. Better a dinner of herbs where love is, than a feast in a house without it." }
+  ],
+
   // 24-day Advent series (KJV). Served in order, one day at a time;
   // the app remembers which day you're on. Not part of the daily shuffle.
   advent: [
