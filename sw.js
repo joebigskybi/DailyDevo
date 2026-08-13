@@ -1,7 +1,7 @@
 // DailyDevo service worker: precache everything so the app works fully
 // offline after the first visit. Bump CACHE_VERSION whenever app files or
 // content change so installed phones pick up the update.
-var CACHE_VERSION = "dailydevo-v2";
+var CACHE_VERSION = "dailydevo-v3";
 var ASSETS = [
   "./",
   "./index.html",

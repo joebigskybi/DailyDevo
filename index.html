@@ -111,10 +111,13 @@
   .d-ref { font-size: 0.85rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; opacity: 0.75; margin-bottom: 18px; }
   .d-body {
     font-size: 1.02rem; line-height: 1.62; opacity: 0.95;
-    max-height: 52vh; overflow-y: auto; scrollbar-width: none;
+    max-height: 56vh; overflow-y: auto; scrollbar-width: none;
     padding-right: 4px;
-    -webkit-mask-image: linear-gradient(to bottom, #000 88%, transparent);
-            mask-image: linear-gradient(to bottom, #000 88%, transparent);
+  }
+  /* thin edge fade, only while there is more text below to scroll to */
+  .d-body.more {
+    -webkit-mask-image: linear-gradient(to bottom, #000 calc(100% - 22px), rgba(0,0,0,0.15));
+            mask-image: linear-gradient(to bottom, #000 calc(100% - 22px), rgba(0,0,0,0.15));
   }
   .d-body::-webkit-scrollbar { display: none; }
 
@@ -497,7 +500,18 @@
         '<p class="' + sizeClass(item.text, "q-text") + '">“' + esc(item.text) + '”</p>' +
         '<p class="s-ref">' + esc(item.author) + "</p>";
     }
-    return slideEl(bgClass(item.id), html);
+    var s = slideEl(bgClass(item.id), html);
+    var body = s.querySelector(".d-body");
+    if (body) {
+      var syncFade = function () {
+        var more = body.scrollHeight - body.scrollTop - body.clientHeight > 6;
+        body.classList.toggle("more", more);
+      };
+      body.addEventListener("scroll", syncFade, { passive: true });
+      // measure once the slide is in the document
+      requestAnimationFrame(syncFade);
+    }
+    return s;
   }
 
   function followupSlide(pending) {
