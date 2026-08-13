@@ -72,12 +72,15 @@
     scroll-snap-stop: always;
     display: flex;
     flex-direction: column;
-    justify-content: center;
-    padding: calc(64px + env(safe-area-inset-top)) 30px 84px;
+    /* flex-start + auto margins on the inner column = "safe" centering:
+       short cards center, tall cards start below the header instead of
+       overflowing up underneath it */
+    justify-content: flex-start;
+    padding: calc(92px + env(safe-area-inset-top)) 30px 84px;
     position: relative;
     overflow: hidden;
   }
-  .slide-inner { max-width: 480px; margin: 0 auto; width: 100%; position: relative; }
+  .slide-inner { max-width: 480px; margin: auto; width: 100%; position: relative; }
 
   .slide .kicker {
     font-size: 0.7rem; font-weight: 700; letter-spacing: 0.22em;
@@ -125,6 +128,14 @@
   /* Spurgeon readings are long — keep the column inside the slide */
   .sp-slide .d-body { max-height: 42vh; }
   .sp-slide .a-verse { font-size: 1.15rem; }
+  @media (max-height: 720px) {
+    .sp-slide .d-body { max-height: 33vh; }
+    .d-body { max-height: 46vh; }
+  }
+  @media (max-height: 600px) {
+    .sp-slide .d-body { max-height: 23vh; }
+    .d-body { max-height: 38vh; }
+  }
 
   /* hymn slides */
   .h-title { font-family: Georgia, serif; font-size: 1.55rem; line-height: 1.25; margin-bottom: 4px; }
@@ -628,7 +639,7 @@
 
 <!-- ?v must match CACHE_VERSION in sw.js so the app shell and content
      always update together -->
-<script src="./content.js?v=11"></script>
+<script src="./content.js?v=12"></script>
 <script>
 (function () {
   "use strict";
