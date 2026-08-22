@@ -23,8 +23,9 @@ offline after the first visit.
 ## How it works
 
 - **Today** — a full-screen swipe feed served from a shuffled deck of all
-  content (60 scriptures, 24 devotionals, 36 quotes, 16 classic hymns,
-  16 quotes for men/husbands/fathers). No repeats until the whole library
+  content (100 scriptures, 36 devotionals, 60 quotes, 24 classic hymns,
+  24 quotes for men/husbands/fathers, 24 for women/wives/mothers). No
+  repeats until the whole library
   has cycled, then it reshuffles. If your last journal entry had a
   commitment, the app asks whether you did it before anything else, then
   asks what you'd like next — the shuffle, a theme (peace, courage,
